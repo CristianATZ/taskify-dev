@@ -59,6 +59,29 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    // FOR COROUTINES
+    implementation(libs.kotlinx.coroutines.android)
+    // END FOR COROUTINES
+
+    // FOR VIEWMODEL
+    implementation(libs.androidx.lifecycle.viewmodel)
+    // END FOR VIEWMODEL
+
+    // FOR ROOM
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    // END FOR ROOM
+
+    // FOR DATASTORE
+    implementation(libs.androidx.datastore.preferences)
+    // END FOR DATASTORE
+
+    // FOR WORKMANAGER
+    implementation(libs.androidx.work.runtime.ktx)
+    // END FOR WORKMANAGER
+
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
