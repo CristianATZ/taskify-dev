@@ -41,7 +41,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.13"
     }
     packaging {
         resources {
@@ -82,6 +82,10 @@ dependencies {
     // FOR WORKMANAGER
     implementation(libs.androidx.work.runtime.ktx)
     // END FOR WORKMANAGER
+
+    // FOR NAVIGATION
+    implementation(libs.androidx.navigation.compose)
+    // END FOR NAVIGATION
 
 
     testImplementation(libs.junit)
