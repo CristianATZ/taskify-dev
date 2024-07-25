@@ -19,6 +19,8 @@ import com.devtorres.taskalarm.data.repository.TaskRepository
 import com.devtorres.taskalarm.data.repository.TaskRepositoryImpl
 import com.devtorres.taskalarm.ui.task.TaskScreen
 import com.devtorres.taskalarm.ui.task.TaskState
+import com.devtorres.taskalarm.ui.task.TaskViewModel
+import com.devtorres.taskalarm.ui.task.TaskViewModelFactory
 import com.devtorres.taskalarm.ui.theme.TaskAlarmTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -28,7 +30,11 @@ class MainActivity : ComponentActivity() {
     private val taskRepository by lazy {
         TaskRepositoryImpl.getInstance(AppDataBase.getInstance(this).taskDao())
     }
-    
+
+    private val taskViewModel: TaskViewModel by viewModels {
+        TaskViewModelFactory(taskRepository)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
