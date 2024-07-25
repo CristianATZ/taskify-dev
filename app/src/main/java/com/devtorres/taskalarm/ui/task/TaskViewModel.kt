@@ -57,7 +57,9 @@ class TaskViewModel(
             taskRepository.deleteTask(task)
 
             _uiState.value = _uiState.value.copy(
-                taskList = _uiState.value.taskList.filter { it.id != task.id }
+                taskList = _uiState.value.taskList.filter {
+                    it.id != task.id
+                }
             )
         }
     }

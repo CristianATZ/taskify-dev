@@ -3,4 +3,5 @@
     <string name="lblTask">Tareas</string>
     <string name="lblTheme">Tema</string>
     <string name="btnAccept">Aceptar</string>
+    <string name="lblTareas">Tareas</string>
 </resources>
