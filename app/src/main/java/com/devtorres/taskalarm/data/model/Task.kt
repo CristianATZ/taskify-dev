@@ -2,6 +2,8 @@ package com.devtorres.taskalarm.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Entity(tableName = "tasks")
 data class Task(
@@ -9,4 +11,5 @@ data class Task(
     val id: Int = 0,
     val title: String,
     var isCompleted: Boolean,
+    val date: LocalDateTime
 )
