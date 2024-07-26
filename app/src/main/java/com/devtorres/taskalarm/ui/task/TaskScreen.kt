@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -41,9 +42,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,138 +52,124 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.devtorres.taskalarm.R
 import com.devtorres.taskalarm.data.model.Task
-import com.devtorres.taskalarm.ui.theme.TaskAlarmTheme
+import com.devtorres.taskalarm.util.TaskUtils.emptyTask
 import java.time.LocalDateTime
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TaskScreen() {
-    val taskList = remember {
-        mutableStateListOf(
-            Task(id = 1, title = "Comprar víveres", isCompleted = false, date = LocalDateTime.now().minusDays(1)),
-            Task(id = 2, title = "Reunión con equipo", isCompleted = true, date = LocalDateTime.now().minusDays(2)),
-            Task(id = 3, title = "Llamar al doctor", isCompleted = false, date = LocalDateTime.now().minusDays(3)),
-            Task(id = 4, title = "Ejercicio en el gimnasio", isCompleted = true, date = LocalDateTime.now().minusDays(4)),
-            Task(id = 5, title = "Leer libro", isCompleted = false, date = LocalDateTime.now().minusDays(5)),
-            Task(id = 6, title = "Preparar presentación", isCompleted = true, date = LocalDateTime.now().minusDays(6)),
-            Task(id = 7, title = "Hacer la colada", isCompleted = false, date = LocalDateTime.now().minusDays(7)),
-            Task(id = 8, title = "Limpiar la casa", isCompleted = true, date = LocalDateTime.now().minusDays(8)),
-            Task(id = 9, title = "Escribir informe", isCompleted = false, date = LocalDateTime.now().minusDays(9)),
-            Task(id = 10, title = "Revisar correos electrónicos", isCompleted = true, date = LocalDateTime.now().minusDays(10)),
-            Task(id = 11, title = "Organizar escritorio", isCompleted = false, date = LocalDateTime.now().minusDays(11)),
-            Task(id = 12, title = "Visitar a los abuelos", isCompleted = true, date = LocalDateTime.now().minusDays(12)),
-            Task(id = 13, title = "Pagar facturas", isCompleted = false, date = LocalDateTime.now().minusDays(13)),
-            Task(id = 14, title = "Ir al banco", isCompleted = true, date = LocalDateTime.now().minusDays(14)),
-            Task(id = 15, title = "Configurar nueva computadora", isCompleted = false, date = LocalDateTime.now().minusDays(15)),
-            Task(id = 16, title = "Cocinar cena", isCompleted = true, date = LocalDateTime.now().minusDays(16)),
-            Task(id = 17, title = "Estudiar para el examen", isCompleted = false, date = LocalDateTime.now().minusDays(17)),
-            Task(id = 18, title = "Llevar el coche al taller", isCompleted = true, date = LocalDateTime.now().minusDays(18)),
-            Task(id = 19, title = "Actualizar currículum", isCompleted = false, date = LocalDateTime.now().minusDays(19)),
-            Task(id = 20, title = "Jugar videojuegos", isCompleted = true, date = LocalDateTime.now().minusDays(20))
-        )
-    }
+fun TaskScreen(taskViewModel: TaskViewModel) {
+    val taskUiState by taskViewModel.uiState.collectAsState()
 
-    val taskUncompleted = remember {
-        mutableStateListOf<Task>().apply {
-            addAll(taskList.filter { !it.isCompleted }.sortedByDescending { it.date })
-        }
-    }
+    val taskList = taskUiState.taskList
 
-    val taskCompleted = remember {
-        mutableStateListOf<Task>().apply {
-            addAll(taskList.filter { it.isCompleted }.sortedByDescending { it.date })
-        }
-    }
+    val taskUncompleted = taskList.filter { !it.isCompleted }.sortedByDescending { it.date }
 
-    var idAction by remember {
-        mutableIntStateOf(-1)
-    }
+    val taskCompleted = taskList.filter { it.isCompleted }.sortedByDescending { it.date }
 
+    var selectedTask by remember {
+        mutableStateOf(emptyTask)
+    }
 
     Scaffold(
         topBar = {
             TopBarApp(
-                taskActions = idAction,
-                taskCompleted = { isCompleted ->
-                    val updatedTask = taskUncompleted[idAction].copy(isCompleted = isCompleted)
-                    Log.d("OBJETO", updatedTask.toString())
-                    taskUncompleted[idAction] = updatedTask
-                    taskCompleted.add(0, updatedTask)
-                    taskUncompleted.removeAt(idAction)
-                    idAction = -1
+                selectedTask = selectedTask,
+                taskCompleted = {
+                    Log.d("TaskViewModel", "complete: $selectedTask")
+                    taskViewModel.updateTask(
+                        task = selectedTask.copy(isCompleted = true)
+                    )
+
+                    selectedTask = emptyTask
                 },
                 taskDeleted = {
-                    taskUncompleted.removeAt(idAction)
-                    idAction = -1
+                    Log.d("TaskViewModel", "delete: $selectedTask")
+                    taskViewModel.deleteTask(task = selectedTask)
+
+                    selectedTask = emptyTask
                 }
             )
         },
-        bottomBar = {
-            BottomBarApp()
-        },
         floatingActionButton = {
-            FloatingActionApp()
+            FloatingActionApp(taskViewModel)
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            LazyColumn {
+        if(taskList.isEmpty()){
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = stringResource(id = R.string.lblNoTask),
+                    textAlign = TextAlign.Center,
+                    style = typography.displaySmall,
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                )
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                LazyColumn {
 
-                item {
-                    Text(
-                        text = stringResource(id = R.string.lblTaskUncompleted),
-                        style = typography.labelLarge,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                }
+                    item {
+                        Text(
+                            text = stringResource(id = R.string.lblTaskUncompleted),
+                            style = typography.labelLarge,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
 
-                // tareas no completadas
-                items( taskUncompleted.size ){ index ->
-                    TaskObject(
-                        task = taskUncompleted[index],
-                        idAction = idAction,
-                        index = index,
-                        updateAction = {
-                            idAction = it
-                        },
-                    )
-                }
+                    // tareas no completadas
+                    items( taskUncompleted ){ task ->
+                        TaskObject(
+                            task = task,
+                            selectedTask = selectedTask,
+                            updateSelectedTask = {
+                                selectedTask = it
+                            }
+                        )
+                    }
 
-                item {
-                    Text(
-                        text = stringResource(id = R.string.lblTaskCompleted),
-                        style = typography.labelLarge,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                }
+                    item {
+                        Text(
+                            text = stringResource(id = R.string.lblTaskUncompleted),
+                            style = typography.labelLarge,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
 
-                // tareas completadas
-                items(taskCompleted.size) { index ->
-                    TaskObject(
-                        task = taskCompleted[index]
-                    )
+                    // tareas completadas
+                    items( taskCompleted ){ task ->
+                        TaskObject(
+                            task = task,
+                            selectedTask = selectedTask
+                        )
+                    }
                 }
             }
         }
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TaskObject(
     task: Task,
-    idAction: Int = -1,
-    index: Int = -1,
-    updateAction: (Int) -> Unit = {}
+    selectedTask: Task,
+    updateSelectedTask: (Task) -> Unit = {},
 ) {
     Card(
         modifier = Modifier
@@ -192,17 +178,18 @@ fun TaskObject(
             .heightIn(50.dp)
             .combinedClickable(
                 onClick = {
-                    updateAction(-1)
+                    updateSelectedTask(emptyTask)
                 },
                 onLongClick = {
-                    updateAction(index)
+                    Log.d("TaskViewModel", "antes: $task")
+                    updateSelectedTask(task)
                 }
             ),
         elevation = CardDefaults.elevatedCardElevation(
             defaultElevation = 4.dp
         ),
         colors = CardDefaults.cardColors(
-            containerColor = if(idAction != index || task.isCompleted) colorScheme.surfaceContainerLow else colorScheme.inverseSurface
+            containerColor = if(selectedTask != task || task.isCompleted) colorScheme.surfaceContainerLow else colorScheme.inverseSurface
         )
     ) {
         Row(
@@ -222,8 +209,8 @@ fun TaskObject(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarApp(
-    taskActions: Int,
-    taskCompleted: (Boolean) -> Unit = {},
+    selectedTask: Task,
+    taskCompleted: () -> Unit = {},
     taskDeleted: () -> Unit = {}
 ) {
     var expanded by remember {
@@ -273,7 +260,7 @@ fun TopBarApp(
                     )
                 }
             }
-            if(taskActions != -1){
+            if(selectedTask.id != -1){
                 // borrar tarea
                 IconButton(onClick = { taskDeleted() }) {
                     Icon(
@@ -284,7 +271,7 @@ fun TopBarApp(
                 }
 
                 // terminar tarea
-                IconButton(onClick = { taskCompleted(true) }) {
+                IconButton(onClick = { taskCompleted() }) {
                     Icon(
                         imageVector = Icons.Filled.Done,
                         tint = Color.Green,
@@ -296,8 +283,9 @@ fun TopBarApp(
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun FloatingActionApp() {
+fun FloatingActionApp(taskViewModel: TaskViewModel) {
     var openDialog by remember {
         mutableStateOf(false)
     }
@@ -327,7 +315,16 @@ fun FloatingActionApp() {
                     Spacer(modifier = Modifier.size(32.dp))
 
                     Button(
-                        onClick = { openDialog = !openDialog },
+                        onClick = {
+                            taskViewModel.addtask(
+                                Task(
+                                    title = titleTask,
+                                    isCompleted = false,
+                                    date = LocalDateTime.now()
+                                )
+                            )
+                            openDialog = !openDialog
+                        },
                         shape = RoundedCornerShape(4.dp),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -342,55 +339,5 @@ fun FloatingActionApp() {
 
     FloatingActionButton(onClick = { openDialog = !openDialog }) {
         Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-    }
-}
-
-@Preview
-@Composable
-fun BottomBarApp() {
-    BottomAppBar(
-        actions = {
-            NavigationBarItem(
-                selected = false,
-                onClick = { /*TODO*/ },
-                icon = {
-                    Icon(imageVector = Icons.Outlined.Task, contentDescription = null)
-                },
-                label = {
-                    Text(text = stringResource(id = R.string.lblTask))
-                }
-            )
-
-            NavigationBarItem(
-                selected = false,
-                onClick = { /*TODO*/ },
-                icon = {
-                    Icon(imageVector = Icons.Outlined.DarkMode, contentDescription = null)
-                },
-                label = {
-                    Text(text = stringResource(id = R.string.lblTheme))
-                }
-            )
-            
-        }
-    )
-}
-
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview
-@Composable
-private fun TaskDarkPreview() {
-    TaskAlarmTheme(true) {
-        TaskScreen()
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview
-@Composable
-private fun TaskLightPreview() {
-    TaskAlarmTheme(false) {
-        TaskScreen()
     }
 }

@@ -17,4 +17,5 @@
     <string name="infoAboutTitle">Icono de desarrollo</string>
     <string name="lblVersion">Version</string>
     <string name="app_version">0.0.1</string>
+    <string name="lblNoTask">Cuando agregues tareas las veras aqui.</string>
 </resources>

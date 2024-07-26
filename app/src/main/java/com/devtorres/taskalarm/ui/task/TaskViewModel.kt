@@ -1,5 +1,6 @@
 package com.devtorres.taskalarm.ui.task
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -34,9 +35,7 @@ class TaskViewModel(
         viewModelScope.launch {
             taskRepository.insertTask(task)
 
-            _uiState.value = _uiState.value.copy(
-                taskList = _uiState.value.taskList + task
-            )
+            getAllTask()
         }
     }
 
@@ -44,22 +43,24 @@ class TaskViewModel(
         viewModelScope.launch {
             taskRepository.updateTask(task)
 
-            _uiState.value = _uiState.value.copy(
-                taskList = _uiState.value.taskList.map {
-                    if (it.id == task.id) task else it
-                }
-            )
+            getAllTask()
         }
     }
 
-    fun deleteTask(task: Task){
+    fun deleteTask(task: Task) {
         viewModelScope.launch {
+            Log.d("TaskViewModel", "Deleting task: $task")
             taskRepository.deleteTask(task)
 
+            getAllTask()
+            Log.d("TaskViewModel", "Tasks after delete: ${_uiState.value.taskList}")
+        }
+    }
+
+    private fun getAllTask(){
+        viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
-                taskList = _uiState.value.taskList.filter {
-                    it.id != task.id
-                }
+                taskList = taskRepository.getAllTasks()
             )
         }
     }
