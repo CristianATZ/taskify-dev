@@ -20,6 +20,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -30,6 +31,8 @@ import com.devtorres.taskalarm.data.database.AppDataBase
 import com.devtorres.taskalarm.data.repository.TaskRepositoryImpl
 import com.devtorres.taskalarm.ui.navigation.Destinations
 import com.devtorres.taskalarm.ui.navigation.NavGraph
+import com.devtorres.taskalarm.ui.task.SettingsViewModel
+import com.devtorres.taskalarm.ui.task.SettingsViewModelFactory
 import com.devtorres.taskalarm.ui.task.TaskViewModel
 import com.devtorres.taskalarm.ui.task.TaskViewModelFactory
 import com.devtorres.taskalarm.ui.theme.TaskAlarmTheme
@@ -44,6 +47,10 @@ class MainActivity : ComponentActivity() {
         TaskViewModelFactory(taskRepository)
     }
 
+    private val settingsViewModel: SettingsViewModel by viewModels {
+        SettingsViewModelFactory(application)
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,10 +59,14 @@ class MainActivity : ComponentActivity() {
         setContent {
 
             val navHostController = rememberNavController()
-            TaskAlarmTheme {
+
+            val isDarkTheme by settingsViewModel.theme.collectAsState(initial = false)
+
+            TaskAlarmTheme(isDarkTheme) {
                 MainScreen(
                     navHostController = navHostController,
-                    taskViewModel = taskViewModel
+                    taskViewModel = taskViewModel,
+                    settingsViewModel = settingsViewModel
                 )
             }
         }
@@ -66,7 +77,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(
     navHostController: NavHostController,
-    taskViewModel: TaskViewModel
+    taskViewModel: TaskViewModel,
+    settingsViewModel: SettingsViewModel
 ) {
     Scaffold(
         bottomBar = {
@@ -76,7 +88,11 @@ fun MainScreen(
         Column(
             modifier = Modifier.padding(it)
         ) {
-            NavGraph(taskViewModel = taskViewModel, navHostController = navHostController)
+            NavGraph(
+                taskViewModel = taskViewModel,
+                settingsViewModel = settingsViewModel,
+                navHostController = navHostController
+            )
         }
     }
 }

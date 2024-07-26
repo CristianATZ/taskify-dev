@@ -18,4 +18,6 @@
     <string name="lblVersion">Version</string>
     <string name="app_version">0.0.1</string>
     <string name="lblNoTask">Cuando agregues tareas las veras aqui.</string>
+    <string name="lblDarkTheme">Tema oscuro</string>
+    <string name="lblLightTheme">Tema claro</string>
 </resources>
