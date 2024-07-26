@@ -11,13 +11,23 @@ class UserPreferences(context: Context){
     private val Context.dataStore by preferencesDataStore("user_prefs")
 
     private val THEME_KEY = booleanPreferencesKey("dark_theme")
+    private val NOTIFICATIONS_KEY = booleanPreferencesKey("notifications_status")
 
     val theme = context.dataStore.data
         .map { preferences -> preferences[THEME_KEY] ?: false }
 
+    val notification = context.dataStore.data
+        .map { preferences -> preferences[NOTIFICATIONS_KEY] ?: true }
+
     suspend fun saveTheme(isDarkMode: Boolean, context: Context) {
         context.dataStore.edit { preferences ->
             preferences[THEME_KEY] = isDarkMode
+        }
+    }
+
+    suspend fun saveNotifications(isEnabled: Boolean, context: Context){
+        context.dataStore.edit { preferences ->
+            preferences[NOTIFICATIONS_KEY] = isEnabled
         }
     }
 }

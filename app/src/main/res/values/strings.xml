@@ -20,4 +20,6 @@
     <string name="lblNoTask">Cuando agregues tareas las veras aqui.</string>
     <string name="lblDarkTheme">Tema oscuro</string>
     <string name="lblLightTheme">Tema claro</string>
+    <string name="lblNotiActi">Notificaciones activadas</string>
+    <string name="lblNotiDes">Notificaciones desactivadas</string>
 </resources>
