@@ -1,11 +1,17 @@
 package com.devtorres.taskalarm.ui.task
 
+import android.content.Context
+import android.icu.text.CaseMap.Title
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.data.repository.TaskRepository
+import com.devtorres.taskalarm.work.LocalNotificationWorker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -62,6 +68,21 @@ class TaskViewModel(
             _uiState.value = _uiState.value.copy(
                 taskList = taskRepository.getAllTasks()
             )
+        }
+    }
+
+    fun scheduleTaskNotification(context: Context, title: String, content: String){
+        viewModelScope.launch {
+            val data  = Data.Builder()
+                .putString("title", title)
+                .putString("content", content)
+                .build()
+
+            val workRequest = OneTimeWorkRequestBuilder<LocalNotificationWorker>()
+                .setInputData(data)
+                .build()
+
+            WorkManager.getInstance(context).enqueue(workRequest)
         }
     }
 

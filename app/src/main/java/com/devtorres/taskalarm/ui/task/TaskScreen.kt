@@ -50,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -286,6 +287,8 @@ fun TopBarApp(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FloatingActionApp(taskViewModel: TaskViewModel) {
+    val context = LocalContext.current
+
     var openDialog by remember {
         mutableStateOf(false)
     }
@@ -295,7 +298,7 @@ fun FloatingActionApp(taskViewModel: TaskViewModel) {
     }
 
     if(openDialog){
-        Dialog(onDismissRequest = { openDialog = !openDialog }) {
+        Dialog(onDismissRequest = { openDialog = false }) {
             Card {
                 Column(
                     modifier = Modifier
@@ -323,7 +326,14 @@ fun FloatingActionApp(taskViewModel: TaskViewModel) {
                                     date = LocalDateTime.now()
                                 )
                             )
-                            openDialog = !openDialog
+
+                            taskViewModel.scheduleTaskNotification(
+                                context = context,
+                                title = "Tarea agregada",
+                                content = titleTask
+                            )
+
+                            openDialog = false
                         },
                         shape = RoundedCornerShape(4.dp),
                         modifier = Modifier

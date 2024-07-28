@@ -36,6 +36,7 @@ import com.devtorres.taskalarm.ui.task.SettingsViewModelFactory
 import com.devtorres.taskalarm.ui.task.TaskViewModel
 import com.devtorres.taskalarm.ui.task.TaskViewModelFactory
 import com.devtorres.taskalarm.ui.theme.TaskAlarmTheme
+import com.devtorres.taskalarm.util.NotificationHelper
 
 class MainActivity : ComponentActivity() {
 
@@ -54,6 +55,10 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationHelper.createNotificationChannels(applicationContext)
+        }
 
         enableEdgeToEdge()
         setContent {
