@@ -1,5 +1,6 @@
 package com.devtorres.taskalarm.ui.task
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Task
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -24,6 +26,7 @@ import com.devtorres.taskalarm.R
 import com.devtorres.taskalarm.ui.navigation.Destinations
 import com.devtorres.taskalarm.ui.navigation.NavGraph
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainScreen(
@@ -33,11 +36,13 @@ fun MainScreen(
 ) {
     Scaffold(
         bottomBar = {
-            BottomBarApp(navHostController)
+            BottomBarApp(
+                navHostController
+            )
         }
     ) {
         Column(
-            modifier = Modifier.padding(it)
+            modifier = Modifier.padding(bottom = it.calculateBottomPadding())
         ) {
             NavGraph(
                 taskViewModel = taskViewModel,
@@ -48,8 +53,11 @@ fun MainScreen(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun BottomBarApp(navHostController: NavHostController) {
+fun BottomBarApp(
+    navHostController: NavHostController
+) {
     val navBackStackEntry by navHostController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -86,7 +94,6 @@ fun BottomBarApp(navHostController: NavHostController) {
                     )
                 }
             )
-
         }
     )
 }

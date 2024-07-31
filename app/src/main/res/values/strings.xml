@@ -22,4 +22,5 @@
     <string name="lblLightTheme">Tema claro</string>
     <string name="lblNotiActi">Notificaciones activadas</string>
     <string name="lblNotiDes">Notificaciones desactivadas</string>
+    <string name="lblSettings">Ajustes</string>
 </resources>
