@@ -7,7 +7,7 @@
     <string name="lblTaskUncompleted">Tareas restantes</string>
     <string name="lblTaskCompleted">Tareas completadas</string>
     <string name="lblAddTask">Agregar tarea</string>
-    <string name="lblPendientes">Pendientes</string>
+    <string name="lblPending">Pendientes</string>
     <string name="infoApplication">Info</string>
     <string name="lblShare">Comparitr nota</string>
     <string name="lblShareTask">Compatir tarea</string>

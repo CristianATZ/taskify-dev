@@ -4,7 +4,6 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,18 +21,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Task
-import androidx.compose.material.icons.sharp.Share
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,14 +35,11 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -59,13 +49,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.devtorres.taskalarm.R
@@ -109,71 +96,100 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            if (taskList.isEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.lblNoTask),
-                        textAlign = TextAlign.Center,
-                        style = typography.displaySmall,
-                        modifier = Modifier.fillMaxWidth(0.8f)
-                    )
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // tareas no completadas
-                    LazyColumn(
-                        modifier = Modifier
-                            .border(1.dp, colorScheme.onBackground.copy(0.25f), RoundedCornerShape(8.dp)),
-                    ) {
-                        // titulo
-                        item {
-                            Text(
-                                text = stringResource(id = R.string.lblTaskUncompleted),
-                                style = typography.labelLarge,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
-                        }
-
-                        // tareas no completadas
-                        items(taskUncompleted) { task ->
-                            TaskObject(
-                                task = task,
-                                selectedTask = selectedTask,
-                                updateSelectedTask = { selectedTask = it }
-                            )
-                        }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                // tareas no completadas
+                TasksUncompleted(
+                    taskUncompleted = taskUncompleted,
+                    selectedTask = selectedTask,
+                    updateSelectedTask = {
+                        selectedTask = it
                     }
+                )
 
-                    // tareas completadas
-                    LazyColumn {
-                        // titulo
-                        item {
-                            Text(
-                                text = stringResource(id = R.string.lblTaskCompleted),
-                                style = typography.labelLarge,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
-                        }
+                Spacer(modifier = Modifier.size(16.dp))
 
-                        // tareas completadas
-                        items(taskCompleted) { task ->
-                            TaskObject(
-                                task = task,
-                                selectedTask = selectedTask
-                            )
-                        }
-                    }
-                }
+                // tareas completadas
+                TasksCompleted(
+                    taskCompleted = taskCompleted,
+                    selectedTask = selectedTask
+                )
             }
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun TasksCompleted(taskCompleted: List<Task>, selectedTask: Task) {
+    LazyColumn(
+        modifier = Modifier
+            .border(
+                1.dp,
+                colorScheme.onSurfaceVariant.copy(0.25f),
+                RoundedCornerShape(8.dp)
+            )
+            .fillMaxWidth(0.9f)
+            .fillMaxHeight(1f)
+            .padding(16.dp)
+    ) {
+        // titulo
+        item {
+            Text(
+                text = stringResource(id = R.string.lblTaskCompleted),
+                style = typography.bodyLarge,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        }
+
+        // tareas completadas
+        items(taskCompleted) { task ->
+            TaskObject(
+                task = task,
+                selectedTask = selectedTask
+            )
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun TasksUncompleted(
+    taskUncompleted: List<Task>,
+    selectedTask: Task,
+    updateSelectedTask: (Task) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier
+            .border(
+                1.dp,
+                colorScheme.onSurfaceVariant.copy(0.25f),
+                RoundedCornerShape(8.dp)
+            )
+            .fillMaxWidth(0.9f)
+            .fillMaxHeight(0.6f)
+            .padding(16.dp)
+    ) {
+        // titulo
+        item {
+            Text(
+                text = stringResource(id = R.string.lblTaskUncompleted),
+                style = typography.bodyLarge,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        }
+
+        // tareas no completadas
+        items(taskUncompleted) { task ->
+            TaskObject(
+                task = task,
+                selectedTask = selectedTask,
+                updateSelectedTask = { updateSelectedTask(it) }
+            )
         }
     }
 }
@@ -190,7 +206,7 @@ fun TaskObject(
     Card(
         modifier = Modifier
             .padding(bottom = 16.dp)
-            .fillMaxWidth(0.9f)
+            .fillMaxWidth()
             .heightIn(50.dp)
             .combinedClickable(
                 onClick = {
@@ -201,11 +217,12 @@ fun TaskObject(
                     updateSelectedTask(task)
                 }
             ),
-        elevation = CardDefaults.elevatedCardElevation(
-            defaultElevation = 4.dp
-        ),
         colors = CardDefaults.cardColors(
-            containerColor = if(selectedTask != task || task.isCompleted) colorScheme.surfaceContainerLow else colorScheme.inverseSurface
+            containerColor =
+            if(selectedTask != task || task.isCompleted)
+                colorScheme.secondary.copy(0.25f)
+            else
+                colorScheme.secondary
         )
     ) {
         Row(
@@ -269,7 +286,9 @@ fun TopBarApp(
         title = {
             // titulo
             Text(
-                text = stringResource(id = R.string.lblPendientes)
+                text = stringResource(id = R.string.lblPending),
+                style = typography.headlineSmall,
+                fontWeight = FontWeight.W900
             )
         },
         actions = {
