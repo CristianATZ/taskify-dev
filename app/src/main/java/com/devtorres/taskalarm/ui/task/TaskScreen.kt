@@ -333,6 +333,7 @@ fun FloatingActionApp(taskViewModel: TaskViewModel) {
                                 content = titleTask
                             )
 
+                            titleTask = ""
                             openDialog = false
                         },
                         shape = RoundedCornerShape(4.dp),

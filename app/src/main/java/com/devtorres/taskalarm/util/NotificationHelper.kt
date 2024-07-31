@@ -19,7 +19,7 @@ object NotificationHelper {
         // canal para tareas
         val taskChannelName = "Notificaciones de Tareas"
         val taskChannelDescription = "Notificaciones relacionadas con Tareas"
-        val taskChannelImportance = NotificationManager.IMPORTANCE_DEFAULT
+        val taskChannelImportance = NotificationManager.IMPORTANCE_HIGH
         val taskChannel = NotificationChannel(TASK_CHANNEL_ID, taskChannelName, taskChannelImportance).apply {
             description = taskChannelDescription
         }
@@ -40,13 +40,15 @@ object NotificationHelper {
         notificationManager.createNotificationChannel(updateChannel)
     }
 
+    // heads-up notification (notificacion emergente)
     @SuppressLint("MissingPermission")
     fun showTaskNotification(context: Context, title: String, content: String){
         val builder = NotificationCompat.Builder(context, TASK_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_background)
             .setContentTitle(title)
             .setContentText(content)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setVibrate(LongArray(0))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
 
         with(NotificationManagerCompat.from(context)) {
             notify(1, builder.build())
@@ -59,7 +61,7 @@ object NotificationHelper {
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
             .setContentText(content)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
         with(NotificationManagerCompat.from(context)) {
             notify(2, builder.build())

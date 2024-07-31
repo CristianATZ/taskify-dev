@@ -31,9 +31,7 @@ class TaskViewModel(
     // jalar todos las notas de room
     init {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                taskList = taskRepository.getAllTasks()
-            )
+            getAllTask()
         }
     }
 
