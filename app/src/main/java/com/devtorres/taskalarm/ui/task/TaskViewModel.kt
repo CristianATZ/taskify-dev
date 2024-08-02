@@ -1,8 +1,10 @@
 package com.devtorres.taskalarm.ui.task
 
 import android.content.Context
-import android.icu.text.CaseMap.Title
+import android.content.Intent
 import android.util.Log
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.result.ActivityResult
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -11,6 +13,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.data.repository.TaskRepository
+import com.devtorres.taskalarm.util.ShareHelper
 import com.devtorres.taskalarm.work.LocalNotificationWorker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -84,6 +87,15 @@ class TaskViewModel(
         }
     }
 
+    fun shareTask(
+        context: Context,
+        information: String,
+        shareLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>
+    ) {
+        viewModelScope.launch {
+            ShareHelper.sendTask(context, information, shareLauncher)
+        }
+    }
 }
 
 @Suppress("UNCHECKED_CAST")

@@ -1,7 +1,15 @@
 package com.devtorres.taskalarm.ui.task
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
@@ -21,6 +29,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.Notes
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
@@ -53,21 +62,33 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.devtorres.taskalarm.R
 import com.devtorres.taskalarm.data.model.Task
+import com.devtorres.taskalarm.ui.dialog.AboutDialog
+import com.devtorres.taskalarm.ui.dialog.AddTaskDialog
 import com.devtorres.taskalarm.util.TaskUtils.emptyTask
 import java.time.LocalDateTime
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TaskScreen(taskViewModel: TaskViewModel) {
+    val context = LocalContext.current
+    var selectedTask by remember { mutableStateOf(emptyTask) }
+
+    val shareLauncher = getShareLauncher(
+        context = context,
+        taskSuccess = stringResource(id = R.string.lblShareSuccess),
+        taskFailure = stringResource(id = R.string.lblShareCancel),
+        unSelectTask = { selectedTask = emptyTask }
+    )
+
     val taskUiState by taskViewModel.uiState.collectAsState()
     val taskList = taskUiState.taskList
     val taskUncompleted = taskList.filter { !it.isCompleted }.sortedByDescending { it.date }
     val taskCompleted = taskList.filter { it.isCompleted }.sortedByDescending { it.date }
-    var selectedTask by remember { mutableStateOf(emptyTask) }
 
     Scaffold(
         topBar = {
@@ -84,6 +105,9 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                     Log.d("TaskViewModel", "delete: $selectedTask")
                     taskViewModel.deleteTask(task = selectedTask)
                     selectedTask = emptyTask
+                },
+                shareInformation = {
+                    taskViewModel.shareTask(context, selectedTask.title, shareLauncher)
                 }
             )
         },
@@ -120,6 +144,23 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                 )
             }
         }
+    }
+}
+
+@Composable
+fun getShareLauncher(
+    context: Context,
+    taskSuccess: String,
+    taskFailure: String,
+    unSelectTask: () -> Unit
+): ManagedActivityResultLauncher<Intent, ActivityResult> {
+    return rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            Toast.makeText(context, taskSuccess, Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, taskFailure, Toast.LENGTH_SHORT).show()
+        }
+        unSelectTask()
     }
 }
 
@@ -174,22 +215,47 @@ fun TasksUncompleted(
             .fillMaxHeight(0.6f)
             .padding(16.dp)
     ) {
-        // titulo
-        item {
-            Text(
-                text = stringResource(id = R.string.lblTaskUncompleted),
-                style = typography.bodyLarge,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-        }
+        if(taskUncompleted.isEmpty()) {
+            item {
+                Spacer(modifier = Modifier.size(75.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.TwoTone.Notes,
+                        contentDescription = null,
+                        tint = colorScheme.onSurfaceVariant.copy(0.25f),
+                        modifier = Modifier
+                            .size(125.dp)
+                    )
+                }
+                Text(
+                    text = stringResource(id = R.string.lblNoTask),
+                    style = typography.headlineLarge,
+                    fontWeight = FontWeight.W500,
+                    textAlign = TextAlign.Center,
+                    color = colorScheme.onSurfaceVariant.copy(0.25f)
+                )
+            }
+        } else {
+            // titulo
+            item {
+                Text(
+                    text = stringResource(id = R.string.lblTaskUncompleted),
+                    style = typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
 
-        // tareas no completadas
-        items(taskUncompleted) { task ->
-            TaskObject(
-                task = task,
-                selectedTask = selectedTask,
-                updateSelectedTask = { updateSelectedTask(it) }
-            )
+            // tareas no completadas
+            items(taskUncompleted) { task ->
+                TaskObject(
+                    task = task,
+                    selectedTask = selectedTask,
+                    updateSelectedTask = { updateSelectedTask(it) }
+                )
+            }
         }
     }
 }
@@ -244,10 +310,9 @@ fun TaskObject(
 fun TopBarApp(
     selectedTask: Task,
     taskCompleted: () -> Unit = {},
-    taskDeleted: () -> Unit = {}
+    taskDeleted: () -> Unit = {},
+    shareInformation: () -> Unit = {}
 ) {
-    val context = LocalContext.current
-
     var expanded by remember {
         mutableStateOf(false)
     }
@@ -258,27 +323,11 @@ fun TopBarApp(
 
     // dialogo con el numero de version
     if(openAbout) {
-        Dialog(onDismissRequest = { openAbout = false }) {
-            Card {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Settings,
-                        contentDescription = stringResource(id = R.string.infoAboutTitle),
-                        modifier = Modifier.size(150.dp)
-                    )
-
-                    Spacer(modifier = Modifier.size(32.dp))
-
-                    Text(
-                        text = "${stringResource(id = R.string.lblVersion)}: ${context.packageManager.getPackageInfo(context.packageName, 0).versionName}"
-                    )
-                }
+        AboutDialog(
+            closeDialog = {
+                openAbout = false
             }
-        }
+        )
     }
 
     // barra superior
@@ -310,7 +359,9 @@ fun TopBarApp(
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = colorScheme.inverseSurface
                     ),
-                    onClick = {  }
+                    onClick = {
+                        shareInformation()
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Share,
@@ -362,58 +413,23 @@ fun FloatingActionApp(taskViewModel: TaskViewModel) {
         mutableStateOf(false)
     }
 
-    var titleTask by remember {
-        mutableStateOf("")
-    }
-
     if(openDialog){
-        Dialog(onDismissRequest = { openDialog = false }) {
-            Card {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(0.95f)
-                ) {
-                    Text(text = stringResource(id = R.string.lblAddTask))
+        AddTaskDialog(
+            closeDialog = { openDialog = false }
+        ) {
+            taskViewModel.addtask(
+                Task(
+                    title = it,
+                    isCompleted = false,
+                    date = LocalDateTime.now()
+                )
+            )
 
-                    Spacer(modifier = Modifier.size(16.dp))
-
-                    OutlinedTextField(
-                        value = titleTask,
-                        onValueChange = { titleTask = it },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
-                    )
-
-                    Spacer(modifier = Modifier.size(32.dp))
-
-                    Button(
-                        onClick = {
-                            taskViewModel.addtask(
-                                Task(
-                                    title = titleTask,
-                                    isCompleted = false,
-                                    date = LocalDateTime.now()
-                                )
-                            )
-
-                            taskViewModel.scheduleTaskNotification(
-                                context = context,
-                                title = "Tarea agregada",
-                                content = titleTask
-                            )
-
-                            titleTask = ""
-                            openDialog = false
-                        },
-                        shape = RoundedCornerShape(4.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(50.dp)
-                    ) {
-                        Text(text = stringResource(id = R.string.btnAccept))
-                    }
-                }
-            }
+            taskViewModel.scheduleTaskNotification(
+                context = context,
+                title = "Tarea agregada",
+                content = it
+            )
         }
     }
 
