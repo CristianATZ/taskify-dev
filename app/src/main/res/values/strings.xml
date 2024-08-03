@@ -25,4 +25,5 @@
     <string name="lblSettings">Ajustes</string>
     <string name="lblShareSuccess">Compartido exitosamente</string>
     <string name="lblShareCancel">Compartir tarea cancelada</string>
+    <string name="lblCopyright">© 2024 Cristian Alexis Torres Zavala</string>
 </resources>

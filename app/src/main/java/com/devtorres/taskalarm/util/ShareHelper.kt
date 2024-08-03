@@ -7,9 +7,9 @@ import androidx.activity.result.ActivityResult
 
 object ShareHelper {
     fun sendTask(
-        context: Context,
         information: String,
-        shareLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>, ) {
+        shareLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>
+    ) {
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, information)

@@ -93,7 +93,7 @@ class TaskViewModel(
         shareLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>
     ) {
         viewModelScope.launch {
-            ShareHelper.sendTask(context, information, shareLauncher)
+            ShareHelper.sendTask(information, shareLauncher)
         }
     }
 }
