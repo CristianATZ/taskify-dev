@@ -11,10 +11,17 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Indication
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -58,6 +65,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -115,37 +123,49 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
             FloatingActionApp(taskViewModel = taskViewModel)
         }
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        // Deseleccionar la tarea cuando se toca fuera de la tarjeta
+                        selectedTask = emptyTask
+                    })
+                }
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
+                    .fillMaxSize()
             ) {
-                // tareas no completadas
-                TasksUncompleted(
-                    taskUncompleted = taskUncompleted,
-                    selectedTask = selectedTask,
-                    updateSelectedTask = {
-                        selectedTask = it
-                    }
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // tareas no completadas
+                    TasksUncompleted(
+                        taskUncompleted = taskUncompleted,
+                        selectedTask = selectedTask,
+                        updateSelectedTask = {
+                            selectedTask = it
+                        }
+                    )
 
-                Spacer(modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.size(16.dp))
 
-                // tareas completadas
-                TasksCompleted(
-                    taskCompleted = taskCompleted,
-                    selectedTask = selectedTask
-                )
+                    // tareas completadas
+                    TasksCompleted(
+                        taskCompleted = taskCompleted,
+                        selectedTask = selectedTask
+                    )
+                }
             }
         }
     }
 }
+
 
 @Composable
 fun getShareLauncher(
@@ -269,12 +289,16 @@ fun TaskObject(
     selectedTask: Task,
     updateSelectedTask: (Task) -> Unit = {},
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+
     Card(
         modifier = Modifier
             .padding(bottom = 16.dp)
             .fillMaxWidth()
             .heightIn(50.dp)
             .combinedClickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current, // Disable ripple effect
                 onClick = {
                     updateSelectedTask(emptyTask)
                 },
@@ -283,13 +307,7 @@ fun TaskObject(
                     updateSelectedTask(task)
                 }
             ),
-        colors = CardDefaults.cardColors(
-            containerColor =
-            if(selectedTask != task || task.isCompleted)
-                colorScheme.secondary.copy(0.25f)
-            else
-                colorScheme.secondary
-        )
+        border = if(selectedTask == task) BorderStroke(2.dp, colorScheme.secondary) else null
     ) {
         Row(
             modifier = Modifier
