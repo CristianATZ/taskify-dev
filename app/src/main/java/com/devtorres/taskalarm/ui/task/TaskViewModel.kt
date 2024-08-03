@@ -13,12 +13,15 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.data.repository.TaskRepository
+import com.devtorres.taskalarm.util.AlarmScheduler
 import com.devtorres.taskalarm.util.ShareHelper
+import com.devtorres.taskalarm.util.WorkScheduler
 import com.devtorres.taskalarm.work.LocalNotificationWorker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 data class TaskState(
     val taskList: List<Task> = emptyList()
@@ -72,28 +75,30 @@ class TaskViewModel(
         }
     }
 
-    fun scheduleTaskNotification(context: Context, title: String, content: String){
-        viewModelScope.launch {
-            val data  = Data.Builder()
-                .putString("title", title)
-                .putString("content", content)
-                .build()
-
-            val workRequest = OneTimeWorkRequestBuilder<LocalNotificationWorker>()
-                .setInputData(data)
-                .build()
-
-            WorkManager.getInstance(context).enqueue(workRequest)
-        }
-    }
-
     fun shareTask(
-        context: Context,
         information: String,
         shareLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>
     ) {
         viewModelScope.launch {
             ShareHelper.sendTask(information, shareLauncher)
+        }
+    }
+
+    fun scheduleTaskNotification(context: Context, title: String, content: String){
+        viewModelScope.launch {
+            WorkScheduler.scheduleInstantNotification(context,title,content)
+        }
+    }
+
+    fun scheduleExactNotification(context: Context, title: String, content: String, calendar: Calendar, id: Int) {
+        viewModelScope.launch {
+            AlarmScheduler.scheduleAlarmOnExactDate(
+                context = context,
+                title = title,
+                content = content,
+                calendar = calendar,
+                requestCode = id
+            )
         }
     }
 }

@@ -1,12 +1,12 @@
 <resources>
     <string name="app_name">Taskify</string>
-    <string name="lblTask">Tareas</string>
+    <string name="lblTasks">Tareas</string>
     <string name="lblTheme">Tema</string>
     <string name="btnAccept">Aceptar</string>
     <string name="lblTareas">Tareas</string>
     <string name="lblTaskUncompleted">Tareas restantes</string>
     <string name="lblTaskCompleted">Tareas completadas</string>
-    <string name="lblAddTask">Agregar tarea</string>
+    <string name="lblTask">Tarea</string>
     <string name="lblPending">Pendientes</string>
     <string name="infoApplication">Info</string>
     <string name="lblShare">Comparitr nota</string>
@@ -26,4 +26,7 @@
     <string name="lblShareSuccess">Compartido exitosamente</string>
     <string name="lblShareCancel">Compartir tarea cancelada</string>
     <string name="lblCopyright">© 2024 Cristian Alexis Torres Zavala</string>
+    <string name="lblTaskName">Nombre tarea</string>
+    <string name="btnNext">Siguiente</string>
+    <string name="lblCreatedFor">Ajsutado para</string>
 </resources>

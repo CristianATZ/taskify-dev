@@ -13,15 +13,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Indication
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,7 +29,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Notes
 import androidx.compose.material.icons.filled.Add
@@ -42,10 +36,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -53,7 +44,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -69,10 +59,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import com.devtorres.taskalarm.R
 import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.ui.dialog.AboutDialog
@@ -115,7 +103,7 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                     selectedTask = emptyTask
                 },
                 shareInformation = {
-                    taskViewModel.shareTask(context, selectedTask.title, shareLauncher)
+                    taskViewModel.shareTask(selectedTask.title, shareLauncher)
                 }
             )
         },
@@ -127,7 +115,7 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .pointerInput(Unit){
+                .pointerInput(Unit) {
                     detectTapGestures(
                         onTap = {
                             selectedTask = emptyTask
@@ -425,22 +413,32 @@ fun FloatingActionApp(taskViewModel: TaskViewModel) {
 
     if(openDialog){
         AddTaskDialog(
-            closeDialog = { openDialog = false }
-        ) {
-            taskViewModel.addtask(
-                Task(
-                    title = it,
-                    isCompleted = false,
-                    date = LocalDateTime.now()
+            closeDialog = { openDialog = false },
+            addTask = {
+                taskViewModel.addtask(
+                    Task(
+                        title = it,
+                        isCompleted = false,
+                        date = LocalDateTime.now()
+                    )
                 )
-            )
 
-            taskViewModel.scheduleTaskNotification(
-                context = context,
-                title = "Tarea agregada",
-                content = it
-            )
-        }
+                taskViewModel.scheduleTaskNotification(
+                    context = context,
+                    title = "Tarea agregada",
+                    content = it
+                )
+            },
+            addReminder = { title, calendar ->
+                taskViewModel.scheduleExactNotification(
+                    context = context,
+                    title = title,
+                    content = "Acaba de expirar",
+                    calendar = calendar,
+                    id = 1
+                )
+            }
+        )
     }
 
     FloatingActionButton(onClick = { openDialog = !openDialog }) {

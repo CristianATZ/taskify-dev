@@ -12,7 +12,6 @@ import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Task
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -74,7 +73,7 @@ fun BottomBarApp(
                 },
                 label = {
                     Text(
-                        text = stringResource(id = R.string.lblTask)
+                        text = stringResource(id = R.string.lblTasks)
                     )
                 }
             )
