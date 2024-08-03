@@ -123,44 +123,40 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
             FloatingActionApp(taskViewModel = taskViewModel)
         }
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = {
-                        // Deseleccionar la tarea cuando se toca fuera de la tarjeta
-                        selectedTask = emptyTask
-                    })
+                .pointerInput(Unit){
+                    detectTapGestures(
+                        onTap = {
+                            selectedTask = emptyTask
+                        }
+                    )
                 }
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    // tareas no completadas
-                    TasksUncompleted(
-                        taskUncompleted = taskUncompleted,
-                        selectedTask = selectedTask,
-                        updateSelectedTask = {
-                            selectedTask = it
-                        }
-                    )
+                // tareas no completadas
+                TasksUncompleted(
+                    taskUncompleted = taskUncompleted,
+                    selectedTask = selectedTask,
+                    updateSelectedTask = {
+                        selectedTask = it
+                    }
+                )
 
-                    Spacer(modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.size(16.dp))
 
-                    // tareas completadas
-                    TasksCompleted(
-                        taskCompleted = taskCompleted,
-                        selectedTask = selectedTask
-                    )
-                }
+                // tareas completadas
+                TasksCompleted(
+                    taskCompleted = taskCompleted,
+                    selectedTask = selectedTask
+                )
             }
         }
     }
@@ -289,16 +285,12 @@ fun TaskObject(
     selectedTask: Task,
     updateSelectedTask: (Task) -> Unit = {},
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-
     Card(
         modifier = Modifier
             .padding(bottom = 16.dp)
             .fillMaxWidth()
             .heightIn(50.dp)
             .combinedClickable(
-                interactionSource = interactionSource,
-                indication = LocalIndication.current, // Disable ripple effect
                 onClick = {
                     updateSelectedTask(emptyTask)
                 },
