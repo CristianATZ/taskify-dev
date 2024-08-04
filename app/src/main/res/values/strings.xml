@@ -26,7 +26,18 @@
     <string name="lblShareSuccess">Compartido exitosamente</string>
     <string name="lblShareCancel">Compartir tarea cancelada</string>
     <string name="lblCopyright">© 2024 Cristian Alexis Torres Zavala</string>
-    <string name="lblTaskName">Nombre tarea</string>
+    <string name="txtTaskName">Nombre tarea</string>
     <string name="btnNext">Siguiente</string>
-    <string name="lblCreatedFor">Ajsutado para</string>
+    <string name="btnCreatedFor">Ajsutado para</string>
+    <string name="txtDate">dd/MM/yyyy</string>
+    <string name="btnDate">Fecha</string>
+    <string name="btnHour">Hora</string>
+    <string name="fchDate">Fecha</string>
+    <string name="fchTime">Hora</string>
+    <string name="lblAdd">Añadir</string>
+    <string name="lblDefaultDateTime">Fecha y hora predeterminados</string>
+    <string name="lblDefaultDateTimeText">
+    Puedes elegir no tener recordatorios.\nSi no eliges una fecha, se usará el día siguiente.\nSi no eliges una hora, se usará las 07:00 a. m.
+    </string>
+    <string name="fchNoDate">Sin aviso</string>
 </resources>
