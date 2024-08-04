@@ -11,5 +11,6 @@ data class Task(
     val id: Int = 0,
     val title: String,
     var isCompleted: Boolean,
-    val date: LocalDateTime
+    val reminder: Boolean,
+    val finishDate: LocalDateTime
 )
