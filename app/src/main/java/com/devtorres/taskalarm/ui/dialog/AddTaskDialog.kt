@@ -2,7 +2,6 @@ package com.devtorres.taskalarm.ui.dialog
 
 import android.annotation.SuppressLint
 import android.os.Build
-import android.text.Html
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +26,7 @@ import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -51,7 +51,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -61,7 +60,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.core.text.HtmlCompat
 import com.devtorres.taskalarm.R
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -131,7 +129,7 @@ fun AddTaskDialog(
         mutableStateOf("")
     }
 
-    var hourSelected by remember {
+    var selectedHour by remember {
         mutableStateOf("--:--")
     }
     // END FOR fecha y hora
@@ -160,7 +158,7 @@ fun AddTaskDialog(
             timePickerState = timePickerState,
             closeDialog = { openTimePicker = false },
             selectedHour = {
-                hourSelected = it
+                selectedHour = it
             }
         )
     }
@@ -207,55 +205,62 @@ fun AddTaskDialog(
                 }
 
                 // chips para fecha hora o instantanea
-                Card(
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = colorScheme.surfaceContainerHighest
-                    )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        FilterChip(
-                            selected = defaultDate,
-                            onClick = {
-                                defaultDate = !defaultDate
-                                noReminder = false
-                            },
-                            label = {
-                                Text(text = stringResource(id = R.string.fchDate))
-                            }
-                        )
+                    // FOR Fecha
+                    FilterChip(
+                        selected = defaultDate,
+                        onClick = {
+                            defaultDate = !defaultDate
+                            selectedDate = ""
+                            noReminder = false
+                        },
+                        label = {
+                            Text(text = stringResource(id = R.string.fchDate))
+                        }
+                    )
+                    // END FOR fecha
 
-                        FilterChip(
-                            selected = defaultTime,
-                            onClick = {
-                                defaultTime = !defaultTime
-                                noReminder = false
-                            },
-                            label = {
-                                Text(text = stringResource(id = R.string.fchTime))
-                            }
-                        )
+                    // FOR Hora
+                    FilterChip(
+                        selected = defaultTime,
+                        onClick = {
+                            defaultTime = !defaultTime
+                            selectedHour = "--:--"
+                            noReminder = false
+                        },
+                        label = {
+                            Text(text = stringResource(id = R.string.fchTime))
+                        }
+                    )
+                    // END FOR Hora
 
-                        FilterChip(
-                            selected = noReminder,
-                            onClick = {
-                                noReminder = !noReminder
-                                defaultDate = false
-                                defaultTime = false
-                            },
-                            label = {
-                                Text(text = stringResource(id = R.string.fchNoDate))
-                            }
-                        )
-                    }
+                    // FOR Sin aviso
+                    FilterChip(
+                        selected = noReminder,
+                        onClick = {
+                            noReminder = !noReminder
+
+                            selectedDate = ""
+                            selectedHour = "--:--"
+
+                            defaultDate = false
+                            defaultTime = false
+                        },
+                        label = {
+                            Text(text = stringResource(id = R.string.fchNoDate))
+                        }
+                    )
+                    // END FOR Sin aviso
                 }
 
-                Spacer(modifier = Modifier.size(16.dp))
+                HorizontalDivider()
+
+                Spacer(modifier = Modifier.size(32.dp))
 
                 OutlinedTextField(
                     value = titleTask,
@@ -309,7 +314,7 @@ fun AddTaskDialog(
                         }
 
                         Text(
-                            text = hourSelected,
+                            text = selectedHour,
                             style = typography.bodyLarge,
                             fontWeight = FontWeight.W500
                         )
