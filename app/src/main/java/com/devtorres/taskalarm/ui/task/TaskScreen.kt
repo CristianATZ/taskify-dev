@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
+import android.util.MutableBoolean
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -18,6 +19,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -27,6 +30,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -38,7 +42,9 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -66,8 +72,11 @@ import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.ui.dialog.AboutDialog
 import com.devtorres.taskalarm.ui.dialog.AddTaskDialog
 import com.devtorres.taskalarm.util.TaskUtils.emptyTask
+import java.time.DayOfWeek
 import java.time.LocalDateTime
+import java.time.temporal.TemporalAdjusters
 
+@OptIn(ExperimentalLayoutApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TaskScreen(taskViewModel: TaskViewModel) {
@@ -83,8 +92,70 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
 
     val taskUiState by taskViewModel.uiState.collectAsState()
     val taskList = taskUiState.taskList
-    val taskUncompleted = taskList.filter { !it.isCompleted }.sortedByDescending { it.date }
-    val taskCompleted = taskList.filter { it.isCompleted }.sortedByDescending { it.date }
+
+    // FOR filtros
+    var filterCompleted by remember {
+        mutableStateOf(false)
+    }
+
+    var filterUncompleted by remember {
+        mutableStateOf(true)
+    }
+
+    var filterAll by remember {
+        mutableStateOf(true)
+    }
+
+    var filterToday by remember {
+        mutableStateOf(false)
+    }
+
+    var filterWeek by remember {
+        mutableStateOf(false)
+    }
+
+    var filterMonth by remember {
+        mutableStateOf(false)
+    }
+    // END FOR filtros
+
+    val now = LocalDateTime.now()
+    val startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        .withHour(0).withMinute(0).withSecond(0).withNano(0)
+    val startOfMonth = now.withDayOfMonth(1)
+        .withHour(0).withMinute(0).withSecond(0).withNano(0)
+
+    // Función de filtrado por fecha
+    fun isDateWithinFilter(taskDate: LocalDateTime): Boolean {
+        return when {
+            filterToday -> taskDate.toLocalDate() == now.toLocalDate()
+            filterWeek -> taskDate.isAfter(startOfWeek) && !taskDate.isAfter(now)
+            filterMonth -> taskDate.isAfter(startOfMonth) && !taskDate.isAfter(now)
+            else -> true // No filtro por fecha
+        }
+    }
+
+    // Función de filtrado por estado
+    fun isStatusMatching(task: Task): Boolean {
+        return when {
+            filterCompleted -> task.isCompleted
+            filterUncompleted -> !task.isCompleted
+            else -> true // No filtro por estado
+        }
+    }
+
+    // Actualiza el estado del filtro de fecha
+    fun selectDateFilter(selectedFilter: String) {
+        filterToday = selectedFilter == "today"
+        filterWeek = selectedFilter == "week"
+        filterMonth = selectedFilter == "month"
+        filterAll = selectedFilter == "all"
+    }
+
+    // Filtrar la lista de tareas
+    val filteredTasks = taskList.filter { task ->
+        isDateWithinFilter(task.finishDate) && isStatusMatching(task)
+    }
 
     Scaffold(
         topBar = {
@@ -114,7 +185,7 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onTap = {
@@ -126,25 +197,115 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
             Column(
                 modifier = Modifier
                     .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // tareas no completadas
-                TasksUncompleted(
-                    taskUncompleted = taskUncompleted,
-                    selectedTask = selectedTask,
-                    updateSelectedTask = {
-                        selectedTask = it
+                // FOR lista de filtros
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(0.95f),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = filterCompleted,
+                        onClick = { filterCompleted = !filterCompleted },
+                        label = { Text(text = stringResource(id = R.string.fchCompleted)) },
+                        leadingIcon = {
+                            if(filterCompleted){
+                                Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                            }
+                        }
+                    )
+
+                    FilterChip(
+                        selected = filterUncompleted,
+                        onClick = { filterUncompleted = !filterUncompleted },
+                        label = { Text(text = stringResource(id = R.string.fchUncompleted)) },
+                        leadingIcon = {
+                            if(filterUncompleted){
+                                Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                            }
+                        }
+                    )
+
+                    FilterChip(
+                        selected = filterAll,
+                        onClick = {
+                            filterAll = !filterAll
+                            selectDateFilter("all")
+                        },
+                        label = { Text(text = stringResource(id = R.string.fchAll)) },
+                        leadingIcon = {
+                            if(filterAll){
+                                Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                            }
+                        }
+                    )
+
+                    FilterChip(
+                        selected = filterToday,
+                        onClick = {
+                            filterToday = !filterToday
+                            selectDateFilter("today")
+                        },
+                        label = { Text(text = stringResource(id = R.string.fchToday)) },
+                        leadingIcon = {
+                            if(filterToday){
+                                Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                            }
+                        }
+                    )
+
+                    FilterChip(
+                        selected = filterWeek,
+                        onClick = {
+                            filterWeek = !filterWeek
+                            selectDateFilter("week")
+                        },
+                        label = { Text(text = stringResource(id = R.string.fchWeek)) },
+                        leadingIcon = {
+                            if(filterWeek){
+                                Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                            }
+                        }
+                    )
+
+                    FilterChip(
+                        selected = filterMonth,
+                        onClick = {
+                            filterMonth = !filterMonth
+                            selectDateFilter("month")
+                        },
+                        label = { Text(text = stringResource(id = R.string.fchMonth)) },
+                        leadingIcon = {
+                            if(filterMonth){
+                                Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                            }
+                        }
+                    )
+                }
+                // END FOR lista de filtros
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+                // FOR lista de tareas
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .border(
+                            1.dp,
+                            colorScheme.onSurfaceVariant.copy(0.25f),
+                            RoundedCornerShape(8.dp)
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    items(filteredTasks){ task ->
+                        TaskObject(
+                            task = task,
+                            selectedTask = selectedTask,
+                            updateSelectedTask = { selectedTask = it }
+                        )
                     }
-                )
-
-                Spacer(modifier = Modifier.size(16.dp))
-
-                // tareas completadas
-                TasksCompleted(
-                    taskCompleted = taskCompleted,
-                    selectedTask = selectedTask
-                )
+                }
+                // END FOR lista de tareas
             }
         }
     }
@@ -169,103 +330,6 @@ fun getShareLauncher(
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun TasksCompleted(taskCompleted: List<Task>, selectedTask: Task) {
-    LazyColumn(
-        modifier = Modifier
-            .border(
-                1.dp,
-                colorScheme.onSurfaceVariant.copy(0.25f),
-                RoundedCornerShape(8.dp)
-            )
-            .fillMaxWidth(0.9f)
-            .fillMaxHeight(1f)
-            .padding(16.dp)
-    ) {
-        // titulo
-        item {
-            Text(
-                text = stringResource(id = R.string.lblTaskCompleted),
-                style = typography.bodyLarge,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-        }
-
-        // tareas completadas
-        items(taskCompleted) { task ->
-            TaskObject(
-                task = task,
-                selectedTask = selectedTask
-            )
-        }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun TasksUncompleted(
-    taskUncompleted: List<Task>,
-    selectedTask: Task,
-    updateSelectedTask: (Task) -> Unit
-) {
-    LazyColumn(
-        modifier = Modifier
-            .border(
-                1.dp,
-                colorScheme.onSurfaceVariant.copy(0.25f),
-                RoundedCornerShape(8.dp)
-            )
-            .fillMaxWidth(0.9f)
-            .fillMaxHeight(0.6f)
-            .padding(16.dp)
-    ) {
-        if(taskUncompleted.isEmpty()) {
-            item {
-                Spacer(modifier = Modifier.size(75.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.TwoTone.Notes,
-                        contentDescription = null,
-                        tint = colorScheme.onSurfaceVariant.copy(0.25f),
-                        modifier = Modifier
-                            .size(125.dp)
-                    )
-                }
-                Text(
-                    text = stringResource(id = R.string.lblNoTask),
-                    style = typography.headlineLarge,
-                    fontWeight = FontWeight.W500,
-                    textAlign = TextAlign.Center,
-                    color = colorScheme.onSurfaceVariant.copy(0.25f)
-                )
-            }
-        } else {
-            // titulo
-            item {
-                Text(
-                    text = stringResource(id = R.string.lblTaskUncompleted),
-                    style = typography.bodyLarge,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-            }
-
-            // tareas no completadas
-            items(taskUncompleted) { task ->
-                TaskObject(
-                    task = task,
-                    selectedTask = selectedTask,
-                    updateSelectedTask = { updateSelectedTask(it) }
-                )
-            }
-        }
-    }
-}
-
-
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TaskObject(
@@ -276,7 +340,7 @@ fun TaskObject(
     Card(
         modifier = Modifier
             .padding(bottom = 16.dp)
-            .fillMaxWidth()
+            .fillMaxWidth(0.95f)
             .heightIn(50.dp)
             .combinedClickable(
                 onClick = {
@@ -414,19 +478,20 @@ fun FloatingActionApp(taskViewModel: TaskViewModel) {
     if(openDialog){
         AddTaskDialog(
             closeDialog = { openDialog = false },
-            addTask = {
+            addTask = { title, reminder, finishDate ->
                 taskViewModel.addtask(
                     Task(
-                        title = it,
+                        title = title,
                         isCompleted = false,
-                        date = LocalDateTime.now()
+                        reminder = reminder,
+                        finishDate = finishDate
                     )
                 )
 
                 taskViewModel.scheduleTaskNotification(
                     context = context,
                     title = "Tarea agregada",
-                    content = it
+                    content = title
                 )
             },
             addReminder = { title, calendar ->

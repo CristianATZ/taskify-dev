@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
@@ -29,7 +28,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
@@ -63,7 +61,10 @@ import androidx.compose.ui.window.Dialog
 import com.devtorres.taskalarm.R
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
@@ -75,7 +76,7 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun AddTaskDialog(
     closeDialog: () -> Unit,
-    addTask: (String) -> Unit,
+    addTask: (String, Boolean, LocalDateTime) -> Unit,
     addReminder: (String, Calendar) -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -87,16 +88,22 @@ fun AddTaskDialog(
     // END FOR propiedades de la tarea
 
     // FOR chips
-    var defaultDate by remember {
+    var filterDate by remember {
         mutableStateOf(false)
     }
 
-    var defaultTime by remember {
+    var filterTime by remember {
         mutableStateOf(false)
     }
 
-    var noReminder by remember {
-        mutableStateOf(false)
+    var filterNo by remember {
+        mutableStateOf(true)
+    }
+
+    fun selectFilter(selected: String) {
+        filterDate = selected == "date" || selected == "datetime"
+        filterTime = selected == "time" || selected == "datetime"
+        filterNo = selected == "no"
     }
     // END FOR chips
 
@@ -213,11 +220,10 @@ fun AddTaskDialog(
                 ) {
                     // FOR Fecha
                     FilterChip(
-                        selected = defaultDate,
+                        selected = filterDate,
                         onClick = {
-                            defaultDate = !defaultDate
-                            selectedDate = ""
-                            noReminder = false
+                            if(filterTime) selectFilter("datetime")
+                            else selectFilter("date")
                         },
                         label = {
                             Text(text = stringResource(id = R.string.fchDate))
@@ -227,11 +233,10 @@ fun AddTaskDialog(
 
                     // FOR Hora
                     FilterChip(
-                        selected = defaultTime,
+                        selected = filterTime,
                         onClick = {
-                            defaultTime = !defaultTime
-                            selectedHour = "--:--"
-                            noReminder = false
+                            if(filterDate) selectFilter("datetime")
+                            else selectFilter("time")
                         },
                         label = {
                             Text(text = stringResource(id = R.string.fchTime))
@@ -241,15 +246,12 @@ fun AddTaskDialog(
 
                     // FOR Sin aviso
                     FilterChip(
-                        selected = noReminder,
+                        selected = filterNo,
                         onClick = {
-                            noReminder = !noReminder
-
                             selectedDate = ""
                             selectedHour = "--:--"
 
-                            defaultDate = false
-                            defaultTime = false
+                            selectFilter("no")
                         },
                         label = {
                             Text(text = stringResource(id = R.string.fchNoDate))
@@ -276,7 +278,7 @@ fun AddTaskDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                if(defaultDate){
+                if(filterDate){
                     Spacer(modifier = Modifier.size(16.dp))
 
                     OutlinedTextField(
@@ -299,7 +301,7 @@ fun AddTaskDialog(
                     )
                 }
 
-                if(defaultTime){
+                if(filterTime){
                     Spacer(modifier = Modifier.size(16.dp))
 
                     Row(
@@ -325,19 +327,38 @@ fun AddTaskDialog(
 
                 Button(
                     onClick = {
+                        val hour = timePickerState.hour
+                        val minute = timePickerState.minute
                         val milis = datePickerState.selectedDateMillis ?: 0
                         calendar = Calendar.getInstance().apply {
-                            timeInMillis = milis + (1000 * 60 * 60 * 24)
-                            set(Calendar.HOUR_OF_DAY, timePickerState.hour)
-                            set(Calendar.MINUTE, timePickerState.minute)
+                            timeInMillis = milis + (1000 * 60 * 60 * 24 * 1)
+                            set(Calendar.HOUR_OF_DAY, hour)
+                            set(Calendar.MINUTE, minute)
                             set(Calendar.SECOND, 0)
                             set(Calendar.MILLISECOND, 0)
                         }
 
                         Log.d("FECHA", "Year: ${calendar.get(Calendar.YEAR)}, Month: ${calendar.get(Calendar.MONTH)}, Day: ${calendar.get(Calendar.DAY_OF_MONTH)}, Hour: ${calendar.get(Calendar.HOUR_OF_DAY)}, Minute: ${calendar.get(Calendar.MINUTE)}")
 
-                        addTask(titleTask)
-                        if(!noReminder){
+                        val reminder = filterDate || filterTime
+
+                        // Crea un LocalDateTime con la fecha deseada y luego ajusta la hora y minuto
+                        val localDateTime = when {
+                            !reminder -> LocalDateTime.now().withHour(hour).withMinute(minute).withSecond(0).withNano(0)
+                            !filterDate -> LocalDateTime.ofInstant(
+                                Instant.ofEpochMilli(milis + (1000 * 60 * 60 * 24 * 2)),
+                                ZoneId.systemDefault()
+                            ).withHour(hour).withMinute(minute).withSecond(0).withNano(0)
+                            else -> LocalDateTime.ofInstant(
+                                Instant.ofEpochMilli(milis + (1000 * 60 * 60 * 24 * 1)),
+                                ZoneId.systemDefault()
+                            ).withHour(hour).withMinute(minute).withSecond(0).withNano(0)
+                        }
+
+
+                        Log.d("FECHA", "$reminder y $localDateTime")
+                        addTask(titleTask, reminder, localDateTime)
+                        if(!filterNo){
                             addReminder(titleTask, calendar)
                         }
                         titleTask = ""

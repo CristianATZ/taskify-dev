@@ -40,4 +40,10 @@
     Puedes elegir no tener recordatorios.\nSi no eliges una fecha, se usará el día siguiente.\nSi no eliges una hora, se usará las 07:00 a. m.
     </string>
     <string name="fchNoDate">Sin aviso</string>
+    <string name="fchCompleted">Completadas</string>
+    <string name="fchUncompleted">Sin completar</string>
+    <string name="fchToday">Hoy</string>
+    <string name="fchWeek">Esta semana</string>
+    <string name="fchMonth">Este mes</string>
+    <string name="fchAll">Todas</string>
 </resources>

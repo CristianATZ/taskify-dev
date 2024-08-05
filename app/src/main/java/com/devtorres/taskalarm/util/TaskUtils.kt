@@ -11,6 +11,7 @@ object TaskUtils {
         id = -1,
         title = "",
         isCompleted = false,
-        date = LocalDateTime.now()
+        reminder = false,
+        finishDate = LocalDateTime.now()
     )
 }
