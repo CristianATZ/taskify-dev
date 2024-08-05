@@ -68,6 +68,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.devtorres.taskalarm.R
+import com.devtorres.taskalarm.data.model.Filters
 import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.ui.dialog.AboutDialog
 import com.devtorres.taskalarm.ui.dialog.AddTaskDialog
@@ -75,6 +76,8 @@ import com.devtorres.taskalarm.util.TaskUtils.emptyTask
 import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
+import com.devtorres.taskalarm.util.TaskUtils.DateFilter
+import com.devtorres.taskalarm.util.TaskUtils.StatusFilter
 
 @OptIn(ExperimentalLayoutApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
@@ -94,62 +97,35 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
     val taskList = taskUiState.taskList
 
     // FOR filtros
-    var filterCompleted by remember {
-        mutableStateOf(false)
-    }
+    var filters by remember { mutableStateOf(Filters()) }
 
-    var filterUncompleted by remember {
-        mutableStateOf(true)
-    }
-
-    var filterAll by remember {
-        mutableStateOf(true)
-    }
-
-    var filterToday by remember {
-        mutableStateOf(false)
-    }
-
-    var filterWeek by remember {
-        mutableStateOf(false)
-    }
-
-    var filterMonth by remember {
-        mutableStateOf(false)
-    }
-    // END FOR filtros
-
+    // Calcular fechas
     val now = LocalDateTime.now()
-    val startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-        .withHour(0).withMinute(0).withSecond(0).withNano(0)
-    val startOfMonth = now.withDayOfMonth(1)
-        .withHour(0).withMinute(0).withSecond(0).withNano(0)
+    val startOfWeek = now.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY)).withHour(0).withMinute(0).withSecond(0).withNano(0)
+    val startOfMonth = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0)
 
     // Función de filtrado por fecha
     fun isDateWithinFilter(taskDate: LocalDateTime): Boolean {
-        return when {
-            filterToday -> taskDate.toLocalDate() == now.toLocalDate()
-            filterWeek -> taskDate.isAfter(startOfWeek) && !taskDate.isAfter(now)
-            filterMonth -> taskDate.isAfter(startOfMonth) && !taskDate.isAfter(now)
+        return when (filters.date) {
+            DateFilter.TODAY -> taskDate.toLocalDate() == now.toLocalDate()
+            DateFilter.WEEK -> taskDate.isAfter(startOfWeek) && !taskDate.isAfter(now)
+            DateFilter.MONTH -> taskDate.isAfter(startOfMonth) && !taskDate.isAfter(now)
             else -> true // No filtro por fecha
         }
     }
 
     // Función de filtrado por estado
     fun isStatusMatching(task: Task): Boolean {
-        return when {
-            filterCompleted -> task.isCompleted
-            filterUncompleted -> !task.isCompleted
+        return when (filters.status) {
+            StatusFilter.COMPLETED -> task.isCompleted
+            StatusFilter.UNCOMPLETED -> !task.isCompleted
             else -> true // No filtro por estado
         }
     }
 
-    // Actualiza el estado del filtro de fecha
-    fun selectDateFilter(selectedFilter: String) {
-        filterToday = selectedFilter == "today"
-        filterWeek = selectedFilter == "week"
-        filterMonth = selectedFilter == "month"
-        filterAll = selectedFilter == "all"
+    // Función de actualización de filtros
+    fun updateFilters(status: StatusFilter, date: DateFilter) {
+        filters = Filters(status, date)
     }
 
     // Filtrar la lista de tareas
@@ -205,78 +181,66 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     FilterChip(
-                        selected = filterCompleted,
-                        onClick = { filterCompleted = !filterCompleted },
+                        selected = filters.status == StatusFilter.COMPLETED,
+                        onClick = { updateFilters(StatusFilter.COMPLETED, filters.date) },
                         label = { Text(text = stringResource(id = R.string.fchCompleted)) },
                         leadingIcon = {
-                            if(filterCompleted){
+                            if (filters.status == StatusFilter.COMPLETED) {
                                 Icon(imageVector = Icons.Filled.Done, contentDescription = null)
                             }
                         }
                     )
 
                     FilterChip(
-                        selected = filterUncompleted,
-                        onClick = { filterUncompleted = !filterUncompleted },
+                        selected = filters.status == StatusFilter.UNCOMPLETED,
+                        onClick = { updateFilters(StatusFilter.UNCOMPLETED, filters.date) },
                         label = { Text(text = stringResource(id = R.string.fchUncompleted)) },
                         leadingIcon = {
-                            if(filterUncompleted){
+                            if (filters.status == StatusFilter.UNCOMPLETED) {
                                 Icon(imageVector = Icons.Filled.Done, contentDescription = null)
                             }
                         }
                     )
 
                     FilterChip(
-                        selected = filterAll,
-                        onClick = {
-                            filterAll = !filterAll
-                            selectDateFilter("all")
-                        },
+                        selected = filters.date == DateFilter.NONE,
+                        onClick = { updateFilters(filters.status, DateFilter.NONE) },
                         label = { Text(text = stringResource(id = R.string.fchAll)) },
                         leadingIcon = {
-                            if(filterAll){
+                            if (filters.date == DateFilter.NONE) {
                                 Icon(imageVector = Icons.Filled.Done, contentDescription = null)
                             }
                         }
                     )
 
                     FilterChip(
-                        selected = filterToday,
-                        onClick = {
-                            filterToday = !filterToday
-                            selectDateFilter("today")
-                        },
+                        selected = filters.date == DateFilter.TODAY,
+                        onClick = { updateFilters(filters.status, DateFilter.TODAY) },
                         label = { Text(text = stringResource(id = R.string.fchToday)) },
                         leadingIcon = {
-                            if(filterToday){
+                            if (filters.date == DateFilter.TODAY) {
                                 Icon(imageVector = Icons.Filled.Done, contentDescription = null)
                             }
                         }
                     )
 
                     FilterChip(
-                        selected = filterWeek,
-                        onClick = {
-                            filterWeek = !filterWeek
-                            selectDateFilter("week")
-                        },
+                        selected = filters.date == DateFilter.WEEK,
+                        onClick = { updateFilters(filters.status, DateFilter.WEEK) },
                         label = { Text(text = stringResource(id = R.string.fchWeek)) },
                         leadingIcon = {
-                            if(filterWeek){
+                            if (filters.date == DateFilter.WEEK) {
                                 Icon(imageVector = Icons.Filled.Done, contentDescription = null)
                             }
                         }
                     )
 
                     FilterChip(
-                        selected = filterMonth,
-                        onClick = {
-                            filterMonth = !filterMonth
-                            selectDateFilter("month")
-                        },
+                        selected = filters.date == DateFilter.MONTH,
+                        onClick = { updateFilters(filters.status, DateFilter.MONTH) },
                         label = { Text(text = stringResource(id = R.string.fchMonth)) },
                         leadingIcon = {
-                            if(filterMonth){
+                            if (filters.date == DateFilter.MONTH) {
                                 Icon(imageVector = Icons.Filled.Done, contentDescription = null)
                             }
                         }
