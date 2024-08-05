@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-import android.util.MutableBoolean
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -23,22 +22,20 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.twotone.Notes
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -65,19 +62,18 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.devtorres.taskalarm.R
 import com.devtorres.taskalarm.data.model.Filters
 import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.ui.dialog.AboutDialog
 import com.devtorres.taskalarm.ui.dialog.AddTaskDialog
+import com.devtorres.taskalarm.util.TaskUtils.DateFilter
+import com.devtorres.taskalarm.util.TaskUtils.StatusFilter
 import com.devtorres.taskalarm.util.TaskUtils.emptyTask
 import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
-import com.devtorres.taskalarm.util.TaskUtils.DateFilter
-import com.devtorres.taskalarm.util.TaskUtils.StatusFilter
 
 @OptIn(ExperimentalLayoutApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
@@ -97,11 +93,15 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
     val taskList = taskUiState.taskList
 
     // FOR filtros
+    var isVisibleFilter by remember {
+        mutableStateOf(false)
+    }
+
     var filters by remember { mutableStateOf(Filters()) }
 
     // Calcular fechas
     val now = LocalDateTime.now()
-    val startOfWeek = now.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY)).withHour(0).withMinute(0).withSecond(0).withNano(0)
+    val startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).withHour(0).withMinute(0).withSecond(0).withNano(0)
     val startOfMonth = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0)
 
     // Función de filtrado por fecha
@@ -118,8 +118,9 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
     fun isStatusMatching(task: Task): Boolean {
         return when (filters.status) {
             StatusFilter.COMPLETED -> task.isCompleted
-            StatusFilter.UNCOMPLETED -> !task.isCompleted
-            else -> true // No filtro por estado
+            StatusFilter.UNCOMPLETED -> !task.isCompleted && task.reminder
+            StatusFilter.NONE -> !task.reminder
+            else -> true // no filtro por nada
         }
     }
 
@@ -151,6 +152,9 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                 },
                 shareInformation = {
                     taskViewModel.shareTask(selectedTask.title, shareLauncher)
+                },
+                hideFilters = {
+                    isVisibleFilter = !isVisibleFilter
                 }
             )
         },
@@ -176,75 +180,105 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // FOR lista de filtros
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(0.95f),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    FilterChip(
-                        selected = filters.status == StatusFilter.COMPLETED,
-                        onClick = { updateFilters(StatusFilter.COMPLETED, filters.date) },
-                        label = { Text(text = stringResource(id = R.string.fchCompleted)) },
-                        leadingIcon = {
-                            if (filters.status == StatusFilter.COMPLETED) {
-                                Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                if(isVisibleFilter){
+                    Row(
+                        modifier = Modifier.fillMaxWidth(0.95f),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // todas
+                        FilterChip(
+                            selected = filters.date == DateFilter.ALL,
+                            onClick = { updateFilters(StatusFilter.ALL, DateFilter.ALL) },
+                            label = { Text(text = stringResource(id = R.string.fchAll)) },
+                            leadingIcon = {
+                                if (filters.date == DateFilter.ALL) {
+                                    Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                                }
                             }
-                        }
-                    )
+                        )
 
-                    FilterChip(
-                        selected = filters.status == StatusFilter.UNCOMPLETED,
-                        onClick = { updateFilters(StatusFilter.UNCOMPLETED, filters.date) },
-                        label = { Text(text = stringResource(id = R.string.fchUncompleted)) },
-                        leadingIcon = {
-                            if (filters.status == StatusFilter.UNCOMPLETED) {
-                                Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                        // sin fecha
+                        FilterChip(
+                            selected = filters.status == StatusFilter.NONE,
+                            onClick = { updateFilters(StatusFilter.NONE, DateFilter.NONE) },
+                            label = { Text(text = stringResource(id = R.string.fchNoDate)) },
+                            leadingIcon = {
+                                if (filters.status == StatusFilter.NONE) {
+                                    Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
 
-                    FilterChip(
-                        selected = filters.date == DateFilter.NONE,
-                        onClick = { updateFilters(filters.status, DateFilter.NONE) },
-                        label = { Text(text = stringResource(id = R.string.fchAll)) },
-                        leadingIcon = {
-                            if (filters.date == DateFilter.NONE) {
-                                Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(0.95f),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // completadas
+                        FilterChip(
+                            selected = filters.status == StatusFilter.COMPLETED,
+                            onClick = { updateFilters(StatusFilter.COMPLETED, DateFilter.TODAY) },
+                            label = { Text(text = stringResource(id = R.string.fchCompleted)) },
+                            leadingIcon = {
+                                if (filters.status == StatusFilter.COMPLETED) {
+                                    Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                                }
                             }
-                        }
-                    )
+                        )
 
-                    FilterChip(
-                        selected = filters.date == DateFilter.TODAY,
-                        onClick = { updateFilters(filters.status, DateFilter.TODAY) },
-                        label = { Text(text = stringResource(id = R.string.fchToday)) },
-                        leadingIcon = {
-                            if (filters.date == DateFilter.TODAY) {
-                                Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                        // sin completar
+                        FilterChip(
+                            selected = filters.status == StatusFilter.UNCOMPLETED,
+                            onClick = { updateFilters(StatusFilter.UNCOMPLETED, DateFilter.TODAY) },
+                            label = { Text(text = stringResource(id = R.string.fchUncompleted)) },
+                            leadingIcon = {
+                                if (filters.status == StatusFilter.UNCOMPLETED) {
+                                    Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
 
-                    FilterChip(
-                        selected = filters.date == DateFilter.WEEK,
-                        onClick = { updateFilters(filters.status, DateFilter.WEEK) },
-                        label = { Text(text = stringResource(id = R.string.fchWeek)) },
-                        leadingIcon = {
-                            if (filters.date == DateFilter.WEEK) {
-                                Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(0.95f),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // hoy
+                        FilterChip(
+                            selected = filters.date == DateFilter.TODAY,
+                            onClick = { updateFilters(filters.status, DateFilter.TODAY) },
+                            label = { Text(text = stringResource(id = R.string.fchToday)) },
+                            leadingIcon = {
+                                if (filters.date == DateFilter.TODAY) {
+                                    Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                                }
                             }
-                        }
-                    )
+                        )
 
-                    FilterChip(
-                        selected = filters.date == DateFilter.MONTH,
-                        onClick = { updateFilters(filters.status, DateFilter.MONTH) },
-                        label = { Text(text = stringResource(id = R.string.fchMonth)) },
-                        leadingIcon = {
-                            if (filters.date == DateFilter.MONTH) {
-                                Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                        // semana
+                        FilterChip(
+                            selected = filters.date == DateFilter.WEEK,
+                            onClick = { updateFilters(filters.status, DateFilter.WEEK) },
+                            label = { Text(text = stringResource(id = R.string.fchWeek)) },
+                            leadingIcon = {
+                                if (filters.date == DateFilter.WEEK) {
+                                    Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                                }
                             }
-                        }
-                    )
+                        )
+
+                        // mes
+                        FilterChip(
+                            selected = filters.date == DateFilter.MONTH,
+                            onClick = { updateFilters(filters.status, DateFilter.MONTH) },
+                            label = { Text(text = stringResource(id = R.string.fchMonth)) },
+                            leadingIcon = {
+                                if (filters.date == DateFilter.MONTH) {
+                                    Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                                }
+                            }
+                        )
+                    }
                 }
                 // END FOR lista de filtros
 
@@ -253,12 +287,7 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                 // FOR lista de tareas
                 LazyColumn(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .border(
-                            1.dp,
-                            colorScheme.onSurfaceVariant.copy(0.25f),
-                            RoundedCornerShape(8.dp)
-                        ),
+                        .fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     items(filteredTasks){ task ->
@@ -337,12 +366,9 @@ fun TopBarApp(
     selectedTask: Task,
     taskCompleted: () -> Unit = {},
     taskDeleted: () -> Unit = {},
-    shareInformation: () -> Unit = {}
+    shareInformation: () -> Unit = {},
+    hideFilters: () -> Unit
 ) {
-    var expanded by remember {
-        mutableStateOf(false)
-    }
-
     var openAbout by remember {
         mutableStateOf(false)
     }
@@ -367,15 +393,21 @@ fun TopBarApp(
             )
         },
         actions = {
-            // icono de informacion
             if(selectedTask.id == -1){
-                IconButton(onClick = { expanded = true }) {
-                    IconButton(onClick = { openAbout = true }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Info,
-                            contentDescription = stringResource(id = R.string.infoApplication)
-                        )
-                    }
+                // icono de filtros
+                IconButton(onClick = { hideFilters() }) {
+                    Icon(
+                        imageVector = Icons.Outlined.FilterList,
+                        contentDescription = stringResource(id = R.string.filterApplication)
+                    )
+                }
+
+                // icono de informacion
+                IconButton(onClick = { openAbout = true }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = stringResource(id = R.string.infoApplication)
+                    )
                 }
             }
 

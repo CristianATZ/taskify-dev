@@ -46,4 +46,5 @@
     <string name="fchWeek">Esta semana</string>
     <string name="fchMonth">Este mes</string>
     <string name="fchAll">Todas</string>
+    <string name="filterApplication">Mostrar filtros de tareas</string>
 </resources>
