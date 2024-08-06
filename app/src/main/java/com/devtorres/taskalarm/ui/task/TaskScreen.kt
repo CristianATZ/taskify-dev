@@ -13,13 +13,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,7 +27,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -64,15 +61,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.devtorres.taskalarm.R
+import com.devtorres.taskalarm.data.model.DateFilter
 import com.devtorres.taskalarm.data.model.Filters
+import com.devtorres.taskalarm.data.model.StatusFilter
 import com.devtorres.taskalarm.data.model.Task
+import com.devtorres.taskalarm.data.model.TypeFilter
 import com.devtorres.taskalarm.ui.dialog.AboutDialog
 import com.devtorres.taskalarm.ui.dialog.AddTaskDialog
-import com.devtorres.taskalarm.util.TaskUtils.DateFilter
-import com.devtorres.taskalarm.util.TaskUtils.StatusFilter
 import com.devtorres.taskalarm.util.TaskUtils.emptyTask
+import java.lang.reflect.Type
 import java.time.DayOfWeek
 import java.time.LocalDateTime
+import java.time.Month
 import java.time.temporal.TemporalAdjusters
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -101,37 +101,48 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
 
     // Calcular fechas
     val now = LocalDateTime.now()
-    val startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).withHour(0).withMinute(0).withSecond(0).withNano(0)
-    val startOfMonth = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0)
+    val day = now.dayOfMonth
+    val currenStartWeek = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.MONDAY))
+    val currentEndWeek = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+    val currentMonth = now.month
+    Log.d("FECHA", "$now ${now.isAfter(currenStartWeek) && now.isBefore(currentEndWeek) || now.isEqual(currenStartWeek) || now.isEqual(currentEndWeek)} y $currentMonth")
 
-    // Función de filtrado por fecha
-    fun isDateWithinFilter(taskDate: LocalDateTime): Boolean {
-        return when (filters.date) {
-            DateFilter.TODAY -> taskDate.toLocalDate() == now.toLocalDate()
-            DateFilter.WEEK -> taskDate.isAfter(startOfWeek) && !taskDate.isAfter(now)
-            DateFilter.MONTH -> taskDate.isAfter(startOfMonth) && !taskDate.isAfter(now)
-            else -> true // No filtro por fecha
+    // Funcion de filtrado por tipo
+    fun isTypeMatching(task: Task): Boolean {
+        return when (filters.type) {
+            TypeFilter.NOREMINDER -> !task.reminder
+            TypeFilter.REMINDER -> task.reminder
+            else -> true
         }
     }
 
     // Función de filtrado por estado
     fun isStatusMatching(task: Task): Boolean {
         return when (filters.status) {
-            StatusFilter.COMPLETED -> task.isCompleted
+            StatusFilter.COMPLETED -> task.isCompleted && task.reminder
             StatusFilter.UNCOMPLETED -> !task.isCompleted && task.reminder
-            StatusFilter.NONE -> !task.reminder
             else -> true // no filtro por nada
         }
     }
 
+    // Función de filtrado por fecha
+    fun isDateWithinFilter(taskDate: LocalDateTime): Boolean {
+        return when (filters.date) {
+            DateFilter.TODAY -> taskDate.dayOfMonth == day
+            DateFilter.WEEK -> now.isAfter(currenStartWeek) && now.isBefore(currentEndWeek) || now.isEqual(currenStartWeek) || now.isEqual(currentEndWeek)
+            DateFilter.MONTH -> taskDate.month == now.month
+            else -> true // No filtro por fecha
+        }
+    }
+
     // Función de actualización de filtros
-    fun updateFilters(status: StatusFilter, date: DateFilter) {
-        filters = Filters(status, date)
+    fun updateFilters(type: TypeFilter, status: StatusFilter, date: DateFilter) {
+        filters = Filters(type, status, date)
     }
 
     // Filtrar la lista de tareas
     val filteredTasks = taskList.filter { task ->
-        isDateWithinFilter(task.finishDate) && isStatusMatching(task)
+        isTypeMatching(task) && isStatusMatching(task) && isDateWithinFilter(task.finishDate)
     }
 
     Scaffold(
@@ -181,17 +192,20 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
             ) {
                 // FOR lista de filtros
                 if(isVisibleFilter){
+                    // tipos
                     Row(
                         modifier = Modifier.fillMaxWidth(0.95f),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         // todas
                         FilterChip(
-                            selected = filters.date == DateFilter.ALL,
-                            onClick = { updateFilters(StatusFilter.ALL, DateFilter.ALL) },
+                            selected = filters.type == TypeFilter.ALL,
+                            onClick = {
+                                updateFilters(TypeFilter.ALL, StatusFilter.NONE, DateFilter.NONE)
+                            },
                             label = { Text(text = stringResource(id = R.string.fchAll)) },
                             leadingIcon = {
-                                if (filters.date == DateFilter.ALL) {
+                                if (filters.type == TypeFilter.ALL) {
                                     Icon(imageVector = Icons.Filled.Done, contentDescription = null)
                                 }
                             }
@@ -199,17 +213,34 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
 
                         // sin fecha
                         FilterChip(
-                            selected = filters.status == StatusFilter.NONE,
-                            onClick = { updateFilters(StatusFilter.NONE, DateFilter.NONE) },
+                            selected = filters.type == TypeFilter.NOREMINDER,
+                            onClick = {
+                                updateFilters(TypeFilter.NOREMINDER, StatusFilter.NONE, DateFilter.NONE)
+                            },
                             label = { Text(text = stringResource(id = R.string.fchNoDate)) },
                             leadingIcon = {
-                                if (filters.status == StatusFilter.NONE) {
+                                if (filters.type == TypeFilter.NOREMINDER) {
+                                    Icon(imageVector = Icons.Filled.Done, contentDescription = null)
+                                }
+                            }
+                        )
+
+                        // con fecha
+                        FilterChip(
+                            selected = filters.type == TypeFilter.REMINDER,
+                            onClick = {
+                               updateFilters(TypeFilter.REMINDER, StatusFilter.NONE, DateFilter.NONE)
+                            },
+                            label = { Text(text = stringResource(id = R.string.fchDate)) },
+                            leadingIcon = {
+                                if (filters.type == TypeFilter.REMINDER) {
                                     Icon(imageVector = Icons.Filled.Done, contentDescription = null)
                                 }
                             }
                         )
                     }
 
+                    // estatus
                     Row(
                         modifier = Modifier.fillMaxWidth(0.95f),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -217,7 +248,9 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                         // completadas
                         FilterChip(
                             selected = filters.status == StatusFilter.COMPLETED,
-                            onClick = { updateFilters(StatusFilter.COMPLETED, DateFilter.TODAY) },
+                            onClick = {
+                                updateFilters(TypeFilter.ALL, StatusFilter.COMPLETED, filters.date)
+                            },
                             label = { Text(text = stringResource(id = R.string.fchCompleted)) },
                             leadingIcon = {
                                 if (filters.status == StatusFilter.COMPLETED) {
@@ -229,7 +262,9 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                         // sin completar
                         FilterChip(
                             selected = filters.status == StatusFilter.UNCOMPLETED,
-                            onClick = { updateFilters(StatusFilter.UNCOMPLETED, DateFilter.TODAY) },
+                            onClick = {
+                                updateFilters(TypeFilter.ALL, StatusFilter.UNCOMPLETED, filters.date)
+                            },
                             label = { Text(text = stringResource(id = R.string.fchUncompleted)) },
                             leadingIcon = {
                                 if (filters.status == StatusFilter.UNCOMPLETED) {
@@ -239,6 +274,7 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                         )
                     }
 
+                    // fecha
                     Row(
                         modifier = Modifier.fillMaxWidth(0.95f),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -246,7 +282,9 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                         // hoy
                         FilterChip(
                             selected = filters.date == DateFilter.TODAY,
-                            onClick = { updateFilters(filters.status, DateFilter.TODAY) },
+                            onClick = {
+                                updateFilters(TypeFilter.ALL, filters.status, DateFilter.TODAY)
+                            },
                             label = { Text(text = stringResource(id = R.string.fchToday)) },
                             leadingIcon = {
                                 if (filters.date == DateFilter.TODAY) {
@@ -258,7 +296,9 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                         // semana
                         FilterChip(
                             selected = filters.date == DateFilter.WEEK,
-                            onClick = { updateFilters(filters.status, DateFilter.WEEK) },
+                            onClick = {
+                                updateFilters(TypeFilter.ALL, filters.status, DateFilter.WEEK)
+                            },
                             label = { Text(text = stringResource(id = R.string.fchWeek)) },
                             leadingIcon = {
                                 if (filters.date == DateFilter.WEEK) {
@@ -270,7 +310,9 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                         // mes
                         FilterChip(
                             selected = filters.date == DateFilter.MONTH,
-                            onClick = { updateFilters(filters.status, DateFilter.MONTH) },
+                            onClick = {
+                                updateFilters(TypeFilter.ALL, filters.status, DateFilter.MONTH)
+                            },
                             label = { Text(text = stringResource(id = R.string.fchMonth)) },
                             leadingIcon = {
                                 if (filters.date == DateFilter.MONTH) {

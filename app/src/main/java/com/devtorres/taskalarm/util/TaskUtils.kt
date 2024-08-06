@@ -14,8 +14,4 @@ object TaskUtils {
         reminder = false,
         finishDate = LocalDateTime.now()
     )
-
-    enum class StatusFilter { ALL, COMPLETED, UNCOMPLETED, NONE }
-
-    enum class DateFilter { ALL, TODAY, WEEK, MONTH, NONE }
 }

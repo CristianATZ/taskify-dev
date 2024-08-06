@@ -32,7 +32,7 @@
     <string name="txtDate">dd/MM/yyyy</string>
     <string name="btnDate">Fecha</string>
     <string name="btnHour">Hora</string>
-    <string name="fchDate">Fecha</string>
+    <string name="fchDate">Con aviso</string>
     <string name="fchTime">Hora</string>
     <string name="lblAdd">Añadir</string>
     <string name="lblDefaultDateTime">Fecha y hora predeterminados</string>
