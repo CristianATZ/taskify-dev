@@ -13,16 +13,18 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,6 +36,8 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -69,18 +73,18 @@ import com.devtorres.taskalarm.data.model.TypeFilter
 import com.devtorres.taskalarm.ui.dialog.AboutDialog
 import com.devtorres.taskalarm.ui.dialog.AddTaskDialog
 import com.devtorres.taskalarm.util.TaskUtils.emptyTask
-import java.lang.reflect.Type
 import java.time.DayOfWeek
 import java.time.LocalDateTime
-import java.time.Month
 import java.time.temporal.TemporalAdjusters
 
-@OptIn(ExperimentalLayoutApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TaskScreen(taskViewModel: TaskViewModel) {
     val context = LocalContext.current
+
     var selectedTask by remember { mutableStateOf(emptyTask) }
+    val taskUiState by taskViewModel.uiState.collectAsState()
+    var filters by remember { mutableStateOf(Filters()) }
 
     val shareLauncher = getShareLauncher(
         context = context,
@@ -89,23 +93,37 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
         unSelectTask = { selectedTask = emptyTask }
     )
 
-    val taskUiState by taskViewModel.uiState.collectAsState()
     val taskList = taskUiState.taskList
 
     // FOR filtros
+    fun countActiveFilters(filters: Filters): Int {
+        var count = 1
+        if (filters.status != StatusFilter.NONE) count++
+        if (filters.date != DateFilter.NONE) count++
+        return count
+    }
+
     var isVisibleFilter by remember {
         mutableStateOf(false)
     }
 
-    var filters by remember { mutableStateOf(Filters()) }
-
     // Calcular fechas
     val now = LocalDateTime.now()
     val day = now.dayOfMonth
-    val currenStartWeek = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.MONDAY))
-    val currentEndWeek = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+    val previousSunday = now
+        .with(TemporalAdjusters.previous(DayOfWeek.SUNDAY))
+        .withHour(23)
+        .withMinute(59)
+        .withSecond(59)
+        .withNano(999999999)
+    val nextMonday = now
+        .with(TemporalAdjusters.next(DayOfWeek.MONDAY))
+        .withHour(0)
+        .withMinute(0)
+        .withSecond(0)
+        .withNano(1)
     val currentMonth = now.month
-    Log.d("FECHA", "$now ${now.isAfter(currenStartWeek) && now.isBefore(currentEndWeek) || now.isEqual(currenStartWeek) || now.isEqual(currentEndWeek)} y $currentMonth")
+    Log.d("FECHA", "$now ${now.isAfter(previousSunday) && now.isBefore(nextMonday)} y $currentMonth")
 
     // Funcion de filtrado por tipo
     fun isTypeMatching(task: Task): Boolean {
@@ -129,7 +147,7 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
     fun isDateWithinFilter(taskDate: LocalDateTime): Boolean {
         return when (filters.date) {
             DateFilter.TODAY -> taskDate.dayOfMonth == day
-            DateFilter.WEEK -> now.isAfter(currenStartWeek) && now.isBefore(currentEndWeek) || now.isEqual(currenStartWeek) || now.isEqual(currentEndWeek)
+            DateFilter.WEEK -> taskDate.isAfter(previousSunday) && taskDate.isBefore(nextMonday)
             DateFilter.MONTH -> taskDate.month == now.month
             else -> true // No filtro por fecha
         }
@@ -149,6 +167,7 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
         topBar = {
             TopBarApp(
                 selectedTask = selectedTask,
+                filtersCount = countActiveFilters(filters),
                 taskCompleted = {
                     Log.d("TaskViewModel", "complete: $selectedTask")
                     taskViewModel.updateTask(
@@ -215,9 +234,13 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                         FilterChip(
                             selected = filters.type == TypeFilter.NOREMINDER,
                             onClick = {
-                                updateFilters(TypeFilter.NOREMINDER, StatusFilter.NONE, DateFilter.NONE)
+                                if(filters.type == TypeFilter.NOREMINDER) {
+                                    updateFilters(TypeFilter.ALL, StatusFilter.NONE, DateFilter.NONE)
+                                } else {
+                                    updateFilters(TypeFilter.NOREMINDER, StatusFilter.NONE, DateFilter.NONE)
+                                }
                             },
-                            label = { Text(text = stringResource(id = R.string.fchNoDate)) },
+                            label = { Text(text = stringResource(id = R.string.fchNoReminder)) },
                             leadingIcon = {
                                 if (filters.type == TypeFilter.NOREMINDER) {
                                     Icon(imageVector = Icons.Filled.Done, contentDescription = null)
@@ -229,9 +252,13 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                         FilterChip(
                             selected = filters.type == TypeFilter.REMINDER,
                             onClick = {
-                               updateFilters(TypeFilter.REMINDER, StatusFilter.NONE, DateFilter.NONE)
+                                if(filters.type == TypeFilter.REMINDER) {
+                                    updateFilters(TypeFilter.ALL, StatusFilter.NONE, DateFilter.NONE)
+                                } else {
+                                    updateFilters(TypeFilter.REMINDER, StatusFilter.NONE, DateFilter.NONE)
+                                }
                             },
-                            label = { Text(text = stringResource(id = R.string.fchDate)) },
+                            label = { Text(text = stringResource(id = R.string.fchReminder)) },
                             leadingIcon = {
                                 if (filters.type == TypeFilter.REMINDER) {
                                     Icon(imageVector = Icons.Filled.Done, contentDescription = null)
@@ -249,7 +276,11 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                         FilterChip(
                             selected = filters.status == StatusFilter.COMPLETED,
                             onClick = {
-                                updateFilters(TypeFilter.ALL, StatusFilter.COMPLETED, filters.date)
+                                if(filters.status == StatusFilter.COMPLETED) {
+                                    updateFilters(TypeFilter.ALL, StatusFilter.NONE, filters.date)
+                                } else {
+                                    updateFilters(TypeFilter.ALL, StatusFilter.COMPLETED, filters.date)
+                                }
                             },
                             label = { Text(text = stringResource(id = R.string.fchCompleted)) },
                             leadingIcon = {
@@ -263,7 +294,11 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                         FilterChip(
                             selected = filters.status == StatusFilter.UNCOMPLETED,
                             onClick = {
-                                updateFilters(TypeFilter.ALL, StatusFilter.UNCOMPLETED, filters.date)
+                                if(filters.status == StatusFilter.UNCOMPLETED) {
+                                    updateFilters(TypeFilter.ALL, StatusFilter.NONE, filters.date)
+                                } else {
+                                    updateFilters(TypeFilter.ALL, StatusFilter.UNCOMPLETED, filters.date)
+                                }
                             },
                             label = { Text(text = stringResource(id = R.string.fchUncompleted)) },
                             leadingIcon = {
@@ -283,7 +318,11 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                         FilterChip(
                             selected = filters.date == DateFilter.TODAY,
                             onClick = {
-                                updateFilters(TypeFilter.ALL, filters.status, DateFilter.TODAY)
+                                if(filters.date == DateFilter.TODAY){
+                                    updateFilters(TypeFilter.ALL, filters.status, DateFilter.NONE)
+                                } else {
+                                    updateFilters(TypeFilter.ALL, filters.status, DateFilter.TODAY)
+                                }
                             },
                             label = { Text(text = stringResource(id = R.string.fchToday)) },
                             leadingIcon = {
@@ -297,7 +336,11 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                         FilterChip(
                             selected = filters.date == DateFilter.WEEK,
                             onClick = {
-                                updateFilters(TypeFilter.ALL, filters.status, DateFilter.WEEK)
+                                if(filters.date == DateFilter.WEEK){
+                                    updateFilters(TypeFilter.ALL, filters.status, DateFilter.NONE)
+                                } else {
+                                    updateFilters(TypeFilter.ALL, filters.status, DateFilter.WEEK)
+                                }
                             },
                             label = { Text(text = stringResource(id = R.string.fchWeek)) },
                             leadingIcon = {
@@ -311,7 +354,11 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                         FilterChip(
                             selected = filters.date == DateFilter.MONTH,
                             onClick = {
-                                updateFilters(TypeFilter.ALL, filters.status, DateFilter.MONTH)
+                                if(filters.date == DateFilter.MONTH){
+                                    updateFilters(TypeFilter.ALL, filters.status, DateFilter.NONE)
+                                } else {
+                                    updateFilters(TypeFilter.ALL, filters.status, DateFilter.MONTH)
+                                }
                             },
                             label = { Text(text = stringResource(id = R.string.fchMonth)) },
                             leadingIcon = {
@@ -406,6 +453,7 @@ fun TaskObject(
 @Composable
 fun TopBarApp(
     selectedTask: Task,
+    filtersCount: Int,
     taskCompleted: () -> Unit = {},
     taskDeleted: () -> Unit = {},
     shareInformation: () -> Unit = {},
@@ -437,12 +485,29 @@ fun TopBarApp(
         actions = {
             if(selectedTask.id == -1){
                 // icono de filtros
-                IconButton(onClick = { hideFilters() }) {
-                    Icon(
-                        imageVector = Icons.Outlined.FilterList,
-                        contentDescription = stringResource(id = R.string.filterApplication)
-                    )
+                Box(
+                    modifier = Modifier
+                        .size(40.dp) // Tamaño del contenedor del icono
+                        .clickable(onClick = { hideFilters() }),
+                    contentAlignment = Alignment.Center
+                ) {
+                    BadgedBox(
+                        badge = {
+                            Badge(
+                                modifier = Modifier
+                                    .offset(1.dp, 1.dp)
+                            ) {
+                                Text(text = "$filtersCount")
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.FilterList,
+                            contentDescription = stringResource(id = R.string.filterApplication)
+                        )
+                    }
                 }
+
 
                 // icono de informacion
                 IconButton(onClick = { openAbout = true }) {

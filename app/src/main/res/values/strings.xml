@@ -32,14 +32,15 @@
     <string name="txtDate">dd/MM/yyyy</string>
     <string name="btnDate">Fecha</string>
     <string name="btnHour">Hora</string>
-    <string name="fchDate">Con aviso</string>
+    <string name="fchDate">Fecha</string>
+    <string name="fchReminder">Con aviso</string>
     <string name="fchTime">Hora</string>
     <string name="lblAdd">Añadir</string>
     <string name="lblDefaultDateTime">Fecha y hora predeterminados</string>
     <string name="lblDefaultDateTimeText">
     Puedes elegir no tener recordatorios.\nSi no eliges una fecha, se usará el día siguiente.\nSi no eliges una hora, se usará las 07:00 a. m.
     </string>
-    <string name="fchNoDate">Sin aviso</string>
+    <string name="fchNoReminder">Sin aviso</string>
     <string name="fchCompleted">Completadas</string>
     <string name="fchUncompleted">Sin completar</string>
     <string name="fchToday">Hoy</string>

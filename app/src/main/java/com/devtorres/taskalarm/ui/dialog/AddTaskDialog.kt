@@ -254,7 +254,7 @@ fun AddTaskDialog(
                             selectFilter("no")
                         },
                         label = {
-                            Text(text = stringResource(id = R.string.fchNoDate))
+                            Text(text = stringResource(id = R.string.fchNoReminder))
                         }
                     )
                     // END FOR Sin aviso
