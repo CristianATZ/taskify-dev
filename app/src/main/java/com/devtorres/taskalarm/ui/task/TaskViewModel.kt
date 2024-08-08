@@ -37,9 +37,28 @@ class TaskViewModel(
         }
     }
 
-    fun addtask(task: Task){
+    fun addtask(task: Task, context: Context, content: String, calendar: Calendar){
         viewModelScope.launch {
-            taskRepository.insertTask(task)
+            val id = taskRepository.insertTask(task)
+
+            Log.d("REQUESTCODE", "view ${id.toInt()}")
+
+            scheduleTaskNotification(
+                context = context,
+                title = task.title,
+                content = content,
+                requestCode = id.toString()
+            )
+
+            if(task.reminder){
+                scheduleExactNotification(
+                    context = context,
+                    title = task.title,
+                    content = "Acaba de expirar",
+                    calendar = calendar,
+                    requestCode = id.toInt()
+                )
+            }
 
             getAllTask()
         }

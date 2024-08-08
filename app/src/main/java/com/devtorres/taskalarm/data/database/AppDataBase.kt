@@ -20,6 +20,28 @@ abstract class AppDataBase : RoomDatabase() {
         private var INSTANCE: AppDataBase? = null
 
         fun getInstance(context: Context): AppDataBase {
+/*
+            val MIGRATION_1_2 = object : Migration(1, 2) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    // Eliminar la tabla antigua
+                    db.execSQL("DROP TABLE IF EXISTS tasks")
+
+                    // Crear una nueva tabla con el esquema actualizado
+                    db.execSQL("""
+            CREATE TABLE tasks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                title TEXT NOT NULL,
+                isCompleted INTEGER NOT NULL,
+                reminder INTEGER NOT NULL DEFAULT 0,
+                finishDate INTEGER NOT NULL DEFAULT 0
+            )
+        """)
+                }
+            }
+
+*/
+
+
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,

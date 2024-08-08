@@ -49,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -60,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.devtorres.taskalarm.R
 import com.devtorres.taskalarm.data.model.Task
+import com.devtorres.taskalarm.ui.task.TaskViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -76,11 +78,11 @@ import java.util.concurrent.TimeUnit
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AddTaskDialog(
-    closeDialog: () -> Unit,
-    addTask: (Task, String) -> Unit,
-    addReminder: (String, Calendar, Int) -> Unit
+    taskViewModel: TaskViewModel,
+    closeDialog: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // FOR propiedades de la tarea
     var titleTask by remember {
@@ -365,14 +367,12 @@ fun AddTaskDialog(
                             finishDate = localDateTime
                         )
 
-                        val requestCode = currentTask.toUniqueInt()
-
-                        Log.d("REQUESTCODE", requestCode.toString())
-
-                        addTask(currentTask, requestCode.toString())
-                        if(!filterNo){
-                            addReminder(titleTask, calendar, requestCode)
-                        }
+                        taskViewModel.addtask(
+                            task = currentTask,
+                            content = "Tarea agregada",
+                            context = context,
+                            calendar = calendar
+                        )
                         titleTask = ""
                         closeDialog()
                     },

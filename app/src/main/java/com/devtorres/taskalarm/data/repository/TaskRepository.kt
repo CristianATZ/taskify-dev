@@ -4,7 +4,7 @@ import com.devtorres.taskalarm.data.database.TaskDao
 import com.devtorres.taskalarm.data.model.Task
 
 interface TaskRepository {
-    suspend fun insertTask(task: Task)
+    suspend fun insertTask(task: Task): Long
     suspend fun updateTask(task: Task)
     suspend fun deleteTask(task: Task)
     suspend fun getAllTasks(): List<Task>
@@ -14,8 +14,8 @@ class TaskRepositoryImpl(
     private val taskDao: TaskDao
 ): TaskRepository{
     // funcion para insertar tarea
-    override suspend fun insertTask(task: Task) {
-        taskDao.insertTask(task)
+    override suspend fun insertTask(task: Task): Long {
+        return taskDao.insertTask(task)
     }
 
     // funcion para actualizar tarea

@@ -11,7 +11,7 @@ import com.devtorres.taskalarm.data.model.Task
 interface TaskDao {
     // insertar tarea
     @Insert
-    suspend fun insertTask(task: Task)
+    suspend fun insertTask(task: Task): Long
 
     // actualizar tarea
     @Update
