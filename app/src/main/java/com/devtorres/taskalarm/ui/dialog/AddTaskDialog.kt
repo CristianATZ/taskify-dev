@@ -65,6 +65,7 @@ import com.devtorres.taskalarm.ui.task.TaskViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
@@ -73,7 +74,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
-@SuppressLint("SimpleDateFormat")
+@SuppressLint("SimpleDateFormat", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -136,11 +137,13 @@ fun AddTaskDialog(
 
     // FOR fecha y hora
     var selectedDate by remember {
-        mutableStateOf("")
+        mutableStateOf(
+            LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+        )
     }
 
     var selectedHour by remember {
-        mutableStateOf("--:--")
+        mutableStateOf("07:00 a. m.")
     }
     // END FOR fecha y hora
 
@@ -251,8 +254,8 @@ fun AddTaskDialog(
                     FilterChip(
                         selected = filterNo,
                         onClick = {
-                            selectedDate = ""
-                            selectedHour = "--:--"
+                            selectedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                            selectedHour = "07:00 a. m."
 
                             selectFilter("no")
                         },
@@ -333,38 +336,34 @@ fun AddTaskDialog(
                         val hour = timePickerState.hour
                         val minute = timePickerState.minute
                         val milis = datePickerState.selectedDateMillis ?: 0
+
+                        // Crea un LocalDateTime con la fecha deseada y luego ajusta la hora y minuto
+                        val time = when {
+                            !filterDate && filterTime -> 2
+                            else -> 1
+                        }
+
+                        val localDatime = LocalDateTime.ofInstant(
+                            Instant.ofEpochMilli(milis + (1000 * 60 * 60 * 24 * time)),
+                            ZoneId.systemDefault()
+                        ).withHour(hour).withMinute(minute).withSecond(0).withNano(0)
+
                         calendar = Calendar.getInstance().apply {
-                            timeInMillis = milis + (1000 * 60 * 60 * 24 * 1)
+                            timeInMillis = milis + (1000 * 60 * 60 * 24 * time)
                             set(Calendar.HOUR_OF_DAY, hour)
                             set(Calendar.MINUTE, minute)
                             set(Calendar.SECOND, 0)
                             set(Calendar.MILLISECOND, 0)
                         }
 
-                        Log.d("FECHA", "Year: ${calendar.get(Calendar.YEAR)}, Month: ${calendar.get(Calendar.MONTH)}, Day: ${calendar.get(Calendar.DAY_OF_MONTH)}, Hour: ${calendar.get(Calendar.HOUR_OF_DAY)}, Minute: ${calendar.get(Calendar.MINUTE)}")
 
-                        val reminder = filterDate || filterTime
-
-                        // Crea un LocalDateTime con la fecha deseada y luego ajusta la hora y minuto
-                        val localDateTime = when {
-                            !reminder -> LocalDateTime.now().withHour(hour).withMinute(minute).withSecond(0).withNano(0)
-                            !filterDate -> LocalDateTime.ofInstant(
-                                Instant.ofEpochMilli(milis + (1000 * 60 * 60 * 24 * 2)),
-                                ZoneId.systemDefault()
-                            ).withHour(hour).withMinute(minute).withSecond(0).withNano(0)
-                            else -> LocalDateTime.ofInstant(
-                                Instant.ofEpochMilli(milis + (1000 * 60 * 60 * 24 * 1)),
-                                ZoneId.systemDefault()
-                            ).withHour(hour).withMinute(minute).withSecond(0).withNano(0)
-                        }
-
-
-                        Log.d("FECHA", "$reminder y $localDateTime")
+                        Log.d("FECHA", "local $localDatime")
+                        Log.d("FECHA", "calendar ${LocalDateTime.ofInstant(Instant.ofEpochMilli(calendar.timeInMillis), ZoneId.systemDefault())}")
                         val currentTask = Task(
                             title = titleTask,
                             isCompleted = false,
-                            reminder = reminder,
-                            finishDate = localDateTime
+                            reminder = filterDate || filterTime,
+                            finishDate = localDatime
                         )
 
                         taskViewModel.addtask(

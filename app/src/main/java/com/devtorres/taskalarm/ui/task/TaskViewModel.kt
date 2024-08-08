@@ -37,7 +37,7 @@ class TaskViewModel(
         }
     }
 
-    fun addtask(task: Task, context: Context, content: String, calendar: Calendar){
+    fun addtask(task: Task, context: Context, content: String, calendar: Calendar) {
         viewModelScope.launch {
             val id = taskRepository.insertTask(task)
 
@@ -64,7 +64,7 @@ class TaskViewModel(
         }
     }
 
-    fun updateTask(task: Task){
+    fun updateTask(task: Task) {
         viewModelScope.launch {
             taskRepository.updateTask(task)
 
@@ -82,7 +82,7 @@ class TaskViewModel(
         }
     }
 
-    private fun getAllTask(){
+    private fun getAllTask() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
                 taskList = taskRepository.getAllTasks()
@@ -99,13 +99,24 @@ class TaskViewModel(
         }
     }
 
-    fun scheduleTaskNotification(context: Context, title: String, content: String, requestCode: String){
+    fun scheduleTaskNotification(
+        context: Context,
+        title: String,
+        content: String,
+        requestCode: String
+    ) {
         viewModelScope.launch {
             WorkScheduler.scheduleInstantNotification(context, title, content, requestCode)
         }
     }
 
-    fun scheduleExactNotification(context: Context, title: String, content: String, calendar: Calendar, requestCode: Int) {
+    fun scheduleExactNotification(
+        context: Context,
+        title: String,
+        content: String,
+        calendar: Calendar,
+        requestCode: Int
+    ) {
         viewModelScope.launch {
             AlarmScheduler.scheduleAlarmOnExactDate(
                 context = context,
@@ -117,7 +128,12 @@ class TaskViewModel(
         }
     }
 
-    fun cancelNotification(context: Context, title: String, content: String, requestCode: Int) {
+    fun cancelNotification(
+        context: Context,
+        title: String,
+        content: String,
+        requestCode: Int
+    ) {
         viewModelScope.launch {
             AlarmScheduler.cancelAlarm(context, title, content, requestCode)
         }
