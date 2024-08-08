@@ -7,12 +7,13 @@ import androidx.work.workDataOf
 import com.devtorres.taskalarm.work.LocalNotificationWorker
 
 object WorkScheduler {
-    fun scheduleInstantNotification(context: Context, title: String, content: String){
+    fun scheduleInstantNotification(context: Context, title: String, content: String, requestCode: String){
         val workRequest = OneTimeWorkRequestBuilder<LocalNotificationWorker>()
             .setInputData(
                 workDataOf(
                     "title" to title,
-                    "content" to content
+                    "content" to content,
+                    "requestCode" to requestCode
                 )
             )
             .build()

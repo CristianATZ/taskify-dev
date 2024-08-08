@@ -585,13 +585,14 @@ fun FloatingActionApp(taskViewModel: TaskViewModel) {
     if(openDialog){
         AddTaskDialog(
             closeDialog = { openDialog = false },
-            addTask = { task ->
+            addTask = { task, requestCode ->
                 taskViewModel.addtask(task)
 
                 taskViewModel.scheduleTaskNotification(
                     context = context,
                     title = "Tarea agregada",
-                    content = task.title
+                    content = task.title,
+                    requestCode = requestCode
                 )
             },
             addReminder = { title, calendar, requestCode ->

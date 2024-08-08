@@ -80,9 +80,9 @@ class TaskViewModel(
         }
     }
 
-    fun scheduleTaskNotification(context: Context, title: String, content: String){
+    fun scheduleTaskNotification(context: Context, title: String, content: String, requestCode: String){
         viewModelScope.launch {
-            WorkScheduler.scheduleInstantNotification(context,title,content)
+            WorkScheduler.scheduleInstantNotification(context, title, content, requestCode)
         }
     }
 

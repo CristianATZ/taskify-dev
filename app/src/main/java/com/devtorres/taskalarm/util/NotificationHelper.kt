@@ -42,7 +42,7 @@ object NotificationHelper {
 
     // heads-up notification (notificacion emergente)
     @SuppressLint("MissingPermission")
-    fun showTaskNotification(context: Context, title: String, content: String){
+    fun showTaskNotification(context: Context, title: String, content: String, requestCode: Int){
         val builder = NotificationCompat.Builder(context, TASK_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_background)
             .setContentTitle(title)
@@ -51,7 +51,7 @@ object NotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
 
         with(NotificationManagerCompat.from(context)) {
-            notify(1, builder.build())
+            notify(requestCode, builder.build())
         }
     }
 

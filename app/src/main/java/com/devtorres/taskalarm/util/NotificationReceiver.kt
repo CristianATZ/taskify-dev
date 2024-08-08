@@ -10,8 +10,9 @@ class NotificationReceiver(): BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         val title = intent?.getStringExtra("title") ?: "Notificación"
         val content = intent?.getStringExtra("content") ?: "Contenido de la notificación."
+        val requestCode = intent?.getStringExtra("requestCode") ?: "1"
 
         // Utiliza NotificationHelper para mostrar la notificación
-        NotificationHelper.showTaskNotification(context, title, content)
+        NotificationHelper.showTaskNotification(context, title, content, requestCode.toInt())
     }
 }

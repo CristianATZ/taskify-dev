@@ -77,7 +77,7 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun AddTaskDialog(
     closeDialog: () -> Unit,
-    addTask: (Task) -> Unit,
+    addTask: (Task, String) -> Unit,
     addReminder: (String, Calendar, Int) -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -369,7 +369,7 @@ fun AddTaskDialog(
 
                         Log.d("REQUESTCODE", requestCode.toString())
 
-                        addTask(currentTask)
+                        addTask(currentTask, requestCode.toString())
                         if(!filterNo){
                             addReminder(titleTask, calendar, requestCode)
                         }

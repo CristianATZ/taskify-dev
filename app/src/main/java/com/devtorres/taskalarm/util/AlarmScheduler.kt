@@ -15,6 +15,7 @@ object AlarmScheduler {
         val intent = Intent(context, NotificationReceiver::class.java).apply {
             putExtra("title", title)
             putExtra("content", content)
+            putExtra("requestCode", requestCode.toString()  )
         }
         return PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }

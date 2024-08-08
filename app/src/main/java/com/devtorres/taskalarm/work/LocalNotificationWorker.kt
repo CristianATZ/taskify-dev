@@ -10,8 +10,9 @@ class LocalNotificationWorker(context: Context, workerParameters: WorkerParamete
 
         val title = inputData.getString("title") ?: "Titulo prefeterminado"
         val content = inputData.getString("content") ?: "Contenido prefeterminado"
+        val requestCode = inputData.getString("requestCode") ?: "1"
 
-        NotificationHelper.showTaskNotification(applicationContext, title, content)
+        NotificationHelper.showTaskNotification(applicationContext, title, content, requestCode.toInt())
 
         return Result.success()
     }
