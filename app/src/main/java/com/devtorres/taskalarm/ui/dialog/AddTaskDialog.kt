@@ -59,6 +59,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.devtorres.taskalarm.R
+import com.devtorres.taskalarm.data.model.Task
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -76,8 +77,8 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun AddTaskDialog(
     closeDialog: () -> Unit,
-    addTask: (String, Boolean, LocalDateTime) -> Unit,
-    addReminder: (String, Calendar) -> Unit
+    addTask: (Task) -> Unit,
+    addReminder: (String, Calendar, Int) -> Unit
 ) {
     val scope = rememberCoroutineScope()
 
@@ -169,7 +170,7 @@ fun AddTaskDialog(
             }
         )
     }
-    
+
 
     Dialog(onDismissRequest = { closeDialog() }) {
         OutlinedCard {
@@ -190,7 +191,7 @@ fun AddTaskDialog(
                         style = typography.bodyLarge,
                         fontWeight = FontWeight.W900
                     )
-                    
+
                     TooltipBox(
                         positionProvider = TooltipDefaults.rememberRichTooltipPositionProvider(),
                         tooltip = {
@@ -357,9 +358,20 @@ fun AddTaskDialog(
 
 
                         Log.d("FECHA", "$reminder y $localDateTime")
-                        addTask(titleTask, reminder, localDateTime)
+                        val currentTask = Task(
+                            title = titleTask,
+                            isCompleted = false,
+                            reminder = reminder,
+                            finishDate = localDateTime
+                        )
+
+                        val requestCode = currentTask.toUniqueInt()
+
+                        Log.d("REQUESTCODE", requestCode.toString())
+
+                        addTask(currentTask)
                         if(!filterNo){
-                            addReminder(titleTask, calendar)
+                            addReminder(titleTask, calendar, requestCode)
                         }
                         titleTask = ""
                         closeDialog()

@@ -34,4 +34,19 @@ object AlarmScheduler {
 
         alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
     }
+
+    /**
+     * Cancelar una alarma
+     */
+    fun cancelAlarm(
+        context: Context,
+        title: String,
+        content: String,
+        requestCode: Int
+    ) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val pendingIntent = getPendingIntent(context, requestCode, title, content)
+
+        alarmManager.cancel(pendingIntent)
+    }
 }

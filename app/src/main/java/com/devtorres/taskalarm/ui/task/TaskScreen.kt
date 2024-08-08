@@ -177,6 +177,10 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                 },
                 taskDeleted = {
                     Log.d("TaskViewModel", "delete: $selectedTask")
+
+                    val taskDeleted = Task(title = selectedTask.title, isCompleted = false, reminder = selectedTask.reminder, finishDate = selectedTask.finishDate)
+                    Log.d("REQUESTCODE", taskDeleted.toUniqueInt().toString())
+                    if(selectedTask.reminder) taskViewModel.cancelNotification(context, selectedTask.title, "Acaba de expirar", taskDeleted.toUniqueInt())
                     taskViewModel.deleteTask(task = selectedTask)
                     selectedTask = emptyTask
                 },
@@ -581,29 +585,22 @@ fun FloatingActionApp(taskViewModel: TaskViewModel) {
     if(openDialog){
         AddTaskDialog(
             closeDialog = { openDialog = false },
-            addTask = { title, reminder, finishDate ->
-                taskViewModel.addtask(
-                    Task(
-                        title = title,
-                        isCompleted = false,
-                        reminder = reminder,
-                        finishDate = finishDate
-                    )
-                )
+            addTask = { task ->
+                taskViewModel.addtask(task)
 
                 taskViewModel.scheduleTaskNotification(
                     context = context,
                     title = "Tarea agregada",
-                    content = title
+                    content = task.title
                 )
             },
-            addReminder = { title, calendar ->
+            addReminder = { title, calendar, requestCode ->
                 taskViewModel.scheduleExactNotification(
                     context = context,
                     title = title,
                     content = "Acaba de expirar",
                     calendar = calendar,
-                    id = 1
+                    requestCode = requestCode
                 )
             }
         )

@@ -8,15 +8,11 @@ import androidx.activity.result.ActivityResult
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.data.repository.TaskRepository
 import com.devtorres.taskalarm.util.AlarmScheduler
 import com.devtorres.taskalarm.util.ShareHelper
 import com.devtorres.taskalarm.util.WorkScheduler
-import com.devtorres.taskalarm.work.LocalNotificationWorker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -90,15 +86,21 @@ class TaskViewModel(
         }
     }
 
-    fun scheduleExactNotification(context: Context, title: String, content: String, calendar: Calendar, id: Int) {
+    fun scheduleExactNotification(context: Context, title: String, content: String, calendar: Calendar, requestCode: Int) {
         viewModelScope.launch {
             AlarmScheduler.scheduleAlarmOnExactDate(
                 context = context,
                 title = title,
                 content = content,
                 calendar = calendar,
-                requestCode = id
+                requestCode = requestCode
             )
+        }
+    }
+
+    fun cancelNotification(context: Context, title: String, content: String, requestCode: Int) {
+        viewModelScope.launch {
+            AlarmScheduler.cancelAlarm(context, title, content, requestCode)
         }
     }
 }
