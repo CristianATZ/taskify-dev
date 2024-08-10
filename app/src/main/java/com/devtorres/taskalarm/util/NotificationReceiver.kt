@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.work.impl.utils.ForceStopRunnable.BroadcastReceiver
+import com.devtorres.taskalarm.data.database.AppDataBase
+import com.devtorres.taskalarm.data.repository.TaskRepository
 
 @SuppressLint("RestrictedApi")
 class NotificationReceiver(): BroadcastReceiver() {

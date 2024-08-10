@@ -22,12 +22,10 @@ import com.devtorres.taskalarm.util.NotificationHelper
 
 class MainActivity : ComponentActivity() {
 
-    private val taskRepository by lazy {
-        TaskRepositoryImpl.getInstance(AppDataBase.getInstance(this).taskDao())
-    }
+    private val app by lazy { application as MyApp }
 
     private val taskViewModel: TaskViewModel by viewModels {
-        TaskViewModelFactory(taskRepository)
+        TaskViewModelFactory(app.taskRepository)
     }
 
     private val settingsViewModel: SettingsViewModel by viewModels {
