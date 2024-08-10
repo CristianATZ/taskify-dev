@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,11 +34,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.NotificationsOff
+import androidx.compose.material.icons.filled.SentimentSatisfiedAlt
+import androidx.compose.material.icons.filled.SentimentVeryDissatisfied
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CardDefaults
@@ -603,10 +610,7 @@ fun TaskItem(
                         updateSelectedTask(emptyTask)
                     },
                     onLongClick = {
-                        Log.d("FECHA", task.toString())
-                        Log.d("FECHA", selectedTask.toString())
                         updateSelectedTask(task)
-                        Log.d("FECHA", selectedTask.toString())
                     }
                 )
         ) {
@@ -614,8 +618,8 @@ fun TaskItem(
                 modifier = Modifier
                     .fillMaxWidth(0.75f)
                     .border(
-                        if(selectedTask == task) 2.dp else 1.dp,
-                        if(selectedTask == task) colorScheme.inverse else colorScheme.outline,
+                        if (selectedTask == task) 2.dp else 1.dp,
+                        if (selectedTask == task) colorScheme.inversePrimary else colorScheme.outline,
                         RoundedCornerShape(8.dp)
                     )
                     .padding(16.dp)
@@ -662,40 +666,63 @@ fun TaskItem(
                 defaultElevation = 4.dp
             )
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background( colorScheme.surfaceVariant ),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = localDate.year.toString(),
-                    style = typography.titleSmall,
-                    color = colorScheme.onSurfaceVariant,
-                    modifier = Modifier.graphicsLayer(alpha = 0.5f)
-                )
-                Text(
-                    text = localDate.dayOfMonth.toString(),
-                    style = typography.headlineSmall,
-                    fontWeight = FontWeight.W900,
-                    color = colorScheme.onSurfaceVariant,
-                    modifier = Modifier.graphicsLayer(alpha = 0.75f)
-                )
-                Row(
+            if(task.reminder){
+                Column(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color(0xffB30E0F)),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                        .fillMaxWidth()
+                        .heightIn(80.dp)
+                        .background( colorScheme.surfaceVariant ),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = month,
+                        text = localDate.year.toString(),
                         style = typography.titleSmall,
+                        color = colorScheme.onSurfaceVariant,
+                        modifier = Modifier.graphicsLayer(alpha = 0.5f)
+                    )
+                    Text(
+                        text = localDate.dayOfMonth.toString(),
+                        style = typography.headlineSmall,
                         fontWeight = FontWeight.W900,
-                        letterSpacing = 4.sp,
-                        color = Color.White,
+                        color = colorScheme.onSurfaceVariant,
                         modifier = Modifier.graphicsLayer(alpha = 0.75f)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            //.background(Color(0xffB30E0F)),
+                            .background(colorScheme.tertiary),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = month,
+                            style = typography.titleSmall,
+                            fontWeight = FontWeight.W900,
+                            letterSpacing = 4.sp,
+                            //color = Color.White,
+                            color = colorScheme.onTertiary,
+                            modifier = Modifier.graphicsLayer(alpha = 0.75f)
+                        )
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(80.dp)
+                        //.background(Color(0xffB30E0F).copy(0.75f)),
+                        .background(colorScheme.error),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.NotificationsOff,
+                        contentDescription = null,
+                        //tint = Color.White,
+                        tint = colorScheme.onError,
+                        modifier = Modifier.size(50.dp).graphicsLayer(alpha = 0.75f),
                     )
                 }
             }
