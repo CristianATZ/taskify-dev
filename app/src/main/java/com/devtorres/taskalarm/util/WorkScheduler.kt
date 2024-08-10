@@ -1,12 +1,11 @@
 package com.devtorres.taskalarm.util
 
 import android.content.Context
-import android.util.Log
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.devtorres.taskalarm.work.LocalNotificationWorker
-import com.devtorres.taskalarm.work.UpdateTaskWorker
+import com.devtorres.taskalarm.work.UpdateTaskWorkerById
 
 object WorkScheduler {
     fun scheduleInstantNotification(context: Context, title: String, content: String, requestCode: String){
@@ -24,7 +23,7 @@ object WorkScheduler {
     }
 
     fun scheduleReceiverTaskUpdate(context: Context, taskId: Int){
-        val workRequest = OneTimeWorkRequestBuilder<UpdateTaskWorker>()
+        val workRequest = OneTimeWorkRequestBuilder<UpdateTaskWorkerById>()
             .setInputData(
                 workDataOf(
                     "taskId" to taskId

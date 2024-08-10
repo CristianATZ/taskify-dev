@@ -9,7 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class UpdateTaskWorker(context: Context, workerParameters: WorkerParameters): Worker(context,workerParameters) {
+class UpdateTaskWorkerById(context: Context, workerParameters: WorkerParameters): Worker(context,workerParameters) {
     override fun doWork(): Result {
         val taskId = inputData.getInt("taskId", -1)
         if(taskId == -1) return Result.failure()
