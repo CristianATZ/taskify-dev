@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -40,7 +39,6 @@ import androidx.compose.material.icons.outlined.DoneOutline
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.NotificationsOff
-import androidx.compose.material.icons.outlined.SentimentVerySatisfied
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -70,7 +68,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -80,8 +77,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.SecureFlagPolicy
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.devtorres.taskalarm.MyApp
 import com.devtorres.taskalarm.R
 import com.devtorres.taskalarm.data.model.DateFilter
 import com.devtorres.taskalarm.data.model.Filters
@@ -90,6 +85,7 @@ import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.data.model.TypeFilter
 import com.devtorres.taskalarm.ui.dialog.AboutDialog
 import com.devtorres.taskalarm.ui.dialog.AddTaskDialog
+import com.devtorres.taskalarm.ui.theme.doneScheme
 import com.devtorres.taskalarm.util.TaskUtils.emptyTask
 import java.time.DayOfWeek
 import java.time.LocalDateTime
@@ -476,8 +472,8 @@ fun TaskActionsBottomSheet(
                 onClick = onComplete,
                 icon = Icons.Outlined.Done,
                 colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = colorScheme.secondaryContainer,
-                    contentColor = colorScheme.onSecondaryContainer
+                    containerColor = colorScheme.primaryContainer,
+                    contentColor = colorScheme.onPrimaryContainer
                 ),
                 textResId = R.string.btnDoneTask
             )
@@ -714,14 +710,14 @@ fun TaskItem(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(80.dp)
-                            .background(Color(0xFF3DB30E)),
+                            .background(doneScheme.color),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.DoneOutline,
                             contentDescription = null,
-                            tint = Color(0xFFB2FCBB),
+                            tint = doneScheme.onColor,
                             modifier = Modifier
                                 .size(50.dp)
                         )
@@ -751,7 +747,7 @@ fun TaskItem(
                         Row(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(colorScheme.tertiary),
+                                .background(colorScheme.primary),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -760,7 +756,7 @@ fun TaskItem(
                                 style = typography.titleSmall,
                                 fontWeight = FontWeight.W900,
                                 letterSpacing = 4.sp,
-                                color = colorScheme.onTertiary,
+                                color = colorScheme.onPrimary,
                                 modifier = Modifier.graphicsLayer(alpha = 0.75f)
                             )
                         }
