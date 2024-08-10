@@ -1,19 +1,25 @@
 package com.devtorres.taskalarm.ui.task
 
+import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.test.core.app.ApplicationProvider
 import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.data.repository.TaskRepository
 import com.devtorres.taskalarm.util.AlarmScheduler
 import com.devtorres.taskalarm.util.ShareHelper
 import com.devtorres.taskalarm.util.WorkScheduler
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -34,6 +40,14 @@ class TaskViewModel(
     init {
         viewModelScope.launch {
             getAllTask()
+        }
+    }
+
+    private fun getAllTask() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                taskList = taskRepository.getAllTasks()
+            )
         }
     }
 
@@ -79,14 +93,6 @@ class TaskViewModel(
 
             getAllTask()
             Log.d("TaskViewModel", "Tasks after delete: ${_uiState.value.taskList}")
-        }
-    }
-
-    private fun getAllTask() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                taskList = taskRepository.getAllTasks()
-            )
         }
     }
 
@@ -136,6 +142,12 @@ class TaskViewModel(
     ) {
         viewModelScope.launch {
             AlarmScheduler.cancelAlarm(context, title, content, requestCode)
+        }
+    }
+
+    fun refreshTask() {
+        viewModelScope.launch {
+            getAllTask()
         }
     }
 }

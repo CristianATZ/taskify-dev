@@ -1,8 +1,10 @@
 package com.devtorres.taskalarm.ui.task
 
 import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -52,10 +54,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,6 +68,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.devtorres.taskalarm.R
 import com.devtorres.taskalarm.data.model.DateFilter
 import com.devtorres.taskalarm.data.model.Filters
@@ -162,6 +167,22 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
     val filteredTasks = taskList.filter { task ->
         isTypeMatching(task) && isStatusMatching(task) && isDateWithinFilter(task.finishDate)
     }
+
+    // Define el action que deseas recibir
+    val systemAction = "com.devtorres.taskalarm.TASK_RECEIVER_UDPATED"
+
+    // Usa el BroadcastReceiver para escuchar eventos del sistema
+    SystemBroadcastReceiver(
+        systemAction = systemAction,
+        onSystemEvent = { intent ->
+            // Aquí obtienes el ID de la tarea desde el Intent
+            val taskId = intent?.getIntExtra("taskId", -1) ?: -1
+            if (taskId != -1) {
+                // Actualiza la lista de tareas en el ViewModel
+                taskViewModel.refreshTask()
+            }
+        }
+    )
 
     Scaffold(
         topBar = {
@@ -394,7 +415,6 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
         }
     }
 }
-
 
 @Composable
 fun getShareLauncher(

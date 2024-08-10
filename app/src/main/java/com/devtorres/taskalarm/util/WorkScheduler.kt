@@ -6,6 +6,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.devtorres.taskalarm.work.LocalNotificationWorker
+import com.devtorres.taskalarm.work.UpdateTaskWorker
 
 object WorkScheduler {
     fun scheduleInstantNotification(context: Context, title: String, content: String, requestCode: String){
@@ -15,6 +16,18 @@ object WorkScheduler {
                     "title" to title,
                     "content" to content,
                     "requestCode" to requestCode
+                )
+            )
+            .build()
+
+        WorkManager.getInstance(context).enqueue(workRequest)
+    }
+
+    fun scheduleReceiverTaskUpdate(context: Context, taskId: Int){
+        val workRequest = OneTimeWorkRequestBuilder<UpdateTaskWorker>()
+            .setInputData(
+                workDataOf(
+                    "taskId" to taskId
                 )
             )
             .build()
