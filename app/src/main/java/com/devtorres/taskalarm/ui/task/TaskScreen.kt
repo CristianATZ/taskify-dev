@@ -468,15 +468,17 @@ fun TaskActionsBottomSheet(
 
             Spacer(modifier = Modifier.size(32.dp))
 
-            ActionButtonBottomSheet(
-                onClick = onComplete,
-                icon = Icons.Outlined.Done,
-                colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = colorScheme.primaryContainer,
-                    contentColor = colorScheme.onPrimaryContainer
-                ),
-                textResId = R.string.btnDoneTask
-            )
+            if(!selectedTask.isCompleted && selectedTask.reminder){
+                ActionButtonBottomSheet(
+                    onClick = onComplete,
+                    icon = Icons.Outlined.Done,
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = colorScheme.primary,
+                        contentColor = colorScheme.onPrimary
+                    ),
+                    textResId = R.string.btnDoneTask
+                )
+            }
 
             Spacer(modifier = Modifier.size(16.dp))
 
@@ -484,8 +486,8 @@ fun TaskActionsBottomSheet(
                 onClick = onShare,
                 icon = Icons.Outlined.Share,
                 colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = colorScheme.tertiaryContainer,
-                    contentColor = colorScheme.onTertiaryContainer
+                    containerColor = colorScheme.tertiary,
+                    contentColor = colorScheme.onTertiary
                 ),
                 textResId = R.string.btnShareTask
             )
@@ -496,8 +498,8 @@ fun TaskActionsBottomSheet(
                 onClick = onDelete,
                 icon = Icons.Outlined.Delete,
                 colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = colorScheme.errorContainer,
-                    contentColor = colorScheme.onErrorContainer
+                    containerColor = colorScheme.error,
+                    contentColor = colorScheme.onError
                 ),
                 textResId = R.string.btnDeleteTask
             )
