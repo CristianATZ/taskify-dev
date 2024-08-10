@@ -60,6 +60,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.devtorres.taskalarm.R
+import com.devtorres.taskalarm.data.model.AssigmentTask
 import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.ui.task.TaskViewModel
 import kotlinx.coroutines.launch
@@ -85,31 +86,18 @@ fun AddTaskDialog(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    var assigment by remember {
+        mutableStateOf(AssigmentTask())
+    }
+
     // FOR propiedades de la tarea
     var titleTask by remember {
         mutableStateOf("")
     }
     // END FOR propiedades de la tarea
-
-    // FOR chips
-    var filterDate by remember {
-        mutableStateOf(false)
+    fun updateAssigments(date: Boolean, hour: Boolean, noreminder: Boolean) {
+        assigment = AssigmentTask(date, hour, noreminder)
     }
-
-    var filterTime by remember {
-        mutableStateOf(false)
-    }
-
-    var filterNo by remember {
-        mutableStateOf(true)
-    }
-
-    fun selectFilter(selected: String) {
-        filterDate = selected == "date" || selected == "datetime"
-        filterTime = selected == "time" || selected == "datetime"
-        filterNo = selected == "no"
-    }
-    // END FOR chips
 
     val toolTipState = rememberTooltipState(
         isPersistent = true
@@ -125,7 +113,7 @@ fun AddTaskDialog(
     }
 
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = System.currentTimeMillis()
+        initialSelectedDateMillis = LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
     )
 
     val timePickerState = rememberTimePickerState(
@@ -226,10 +214,13 @@ fun AddTaskDialog(
                 ) {
                     // FOR Fecha
                     FilterChip(
-                        selected = filterDate,
+                        selected = assigment.date,
                         onClick = {
-                            if(filterTime) selectFilter("datetime")
-                            else selectFilter("date")
+                            if(assigment.date){
+                                updateAssigments(date = false, hour = assigment.hour, noreminder = !assigment.hour)
+                            } else {
+                                updateAssigments(date = true, hour = assigment.hour, noreminder = false)
+                            }
                         },
                         label = {
                             Text(text = stringResource(id = R.string.fchDate))
@@ -239,10 +230,13 @@ fun AddTaskDialog(
 
                     // FOR Hora
                     FilterChip(
-                        selected = filterTime,
+                        selected = assigment.hour,
                         onClick = {
-                            if(filterDate) selectFilter("datetime")
-                            else selectFilter("time")
+                            if(assigment.hour){
+                                updateAssigments(date = assigment.date, hour = false, noreminder = !assigment.date)
+                            } else {
+                                updateAssigments(date = assigment.date, hour = true, noreminder = false)
+                            }
                         },
                         label = {
                             Text(text = stringResource(id = R.string.fchTime))
@@ -252,12 +246,12 @@ fun AddTaskDialog(
 
                     // FOR Sin aviso
                     FilterChip(
-                        selected = filterNo,
+                        selected = assigment.noreminder,
                         onClick = {
                             selectedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
                             selectedHour = "07:00 a. m."
 
-                            selectFilter("no")
+                            updateAssigments(date = false, hour = false, noreminder = true)
                         },
                         label = {
                             Text(text = stringResource(id = R.string.fchNoReminder))
@@ -284,7 +278,7 @@ fun AddTaskDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                if(filterDate){
+                if(assigment.date){
                     Spacer(modifier = Modifier.size(16.dp))
 
                     OutlinedTextField(
@@ -307,7 +301,7 @@ fun AddTaskDialog(
                     )
                 }
 
-                if(filterTime){
+                if(assigment.hour){
                     Spacer(modifier = Modifier.size(16.dp))
 
                     Row(
@@ -333,46 +327,54 @@ fun AddTaskDialog(
 
                 Button(
                     onClick = {
+                        // obtener hora y minuto del timepicker
                         val hour = timePickerState.hour
                         val minute = timePickerState.minute
+
+                        // convertir la fecha seleccionada a milisegundos
                         val milis = datePickerState.selectedDateMillis ?: 0
 
-                        // Crea un LocalDateTime con la fecha deseada y luego ajusta la hora y minuto
-                        val time = when {
-                            !filterDate && filterTime -> 2
-                            else -> 1
+                        // convertir la fecha a un localdate
+                        val localDate = when {
+                            !assigment.date && assigment.hour -> LocalDate.now().plusDays(1)
+                            assigment.date -> Instant.ofEpochMilli(milis).atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1)
+                            else -> LocalDate.now()
                         }
 
-                        val localDatime = LocalDateTime.ofInstant(
-                            Instant.ofEpochMilli(milis + (1000 * 60 * 60 * 24 * time)),
-                            ZoneId.systemDefault()
-                        ).withHour(hour).withMinute(minute).withSecond(0).withNano(0)
-
+                        // convertir el localdate, hora y minuto para generar un calendar
+                        // se usara para el alarmManager
                         calendar = Calendar.getInstance().apply {
-                            timeInMillis = milis + (1000 * 60 * 60 * 24 * time)
+                            timeInMillis = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
                             set(Calendar.HOUR_OF_DAY, hour)
                             set(Calendar.MINUTE, minute)
                             set(Calendar.SECOND, 0)
                             set(Calendar.MILLISECOND, 0)
                         }
 
+                        Log.d("FECHA", "${calendar.time}")
+                        Log.d("FECHA", "$localDate $hour:$minute")
+                        Log.d("FECHA", "${localDate.atTime(hour,minute)}")
 
-                        Log.d("FECHA", "local $localDatime")
-                        Log.d("FECHA", "calendar ${LocalDateTime.ofInstant(Instant.ofEpochMilli(calendar.timeInMillis), ZoneId.systemDefault())}")
+                        // crear una tarea para guardarla
                         val currentTask = Task(
                             title = titleTask,
                             isCompleted = false,
-                            reminder = filterDate || filterTime,
-                            finishDate = localDatime
+                            reminder = assigment.date || assigment.hour,
+                            finishDate = localDate.atTime(hour,minute)
                         )
 
+                        // llamar la implementacion de agregar tarea del viewmodel
                         taskViewModel.addtask(
                             task = currentTask,
                             content = "Tarea agregada",
                             context = context,
                             calendar = calendar
                         )
+
+                        // limpiar la caja de texto
                         titleTask = ""
+
+                        // cerrar dialogo
                         closeDialog()
                     },
                     shape = RoundedCornerShape(4.dp),
