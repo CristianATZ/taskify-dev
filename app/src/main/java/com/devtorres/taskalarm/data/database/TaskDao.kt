@@ -17,6 +17,9 @@ interface TaskDao {
     @Update
     suspend fun updateTask(task: Task)
 
+    @Query("UPDATE tasks SET isCompleted = 1 WHERE id = :taskId")
+    suspend fun udpateTaskById(taskId: Int)
+
     // borrar tarae
     @Delete
     suspend fun deleteTask(task: Task)
