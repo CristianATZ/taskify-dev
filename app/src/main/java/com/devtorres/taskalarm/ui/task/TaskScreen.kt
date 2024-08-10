@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,29 +33,32 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CloudOff
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.NotificationsOff
-import androidx.compose.material.icons.filled.SentimentSatisfiedAlt
-import androidx.compose.material.icons.filled.SentimentVeryDissatisfied
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Done
+import androidx.compose.material.icons.outlined.DoneOutline
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.NotificationsOff
+import androidx.compose.material.icons.outlined.SentimentVerySatisfied
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -70,12 +72,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.SecureFlagPolicy
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.devtorres.taskalarm.MyApp
 import com.devtorres.taskalarm.R
 import com.devtorres.taskalarm.data.model.DateFilter
 import com.devtorres.taskalarm.data.model.Filters
@@ -91,6 +97,7 @@ import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TaskScreen(taskViewModel: TaskViewModel) {
@@ -103,8 +110,7 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
     val shareLauncher = getShareLauncher(
         context = context,
         taskSuccess = stringResource(id = R.string.lblShareSuccess),
-        taskFailure = stringResource(id = R.string.lblShareCancel),
-        unSelectTask = { selectedTask = emptyTask }
+        taskFailure = stringResource(id = R.string.lblShareCancel)
     )
 
     val taskList = taskUiState.taskList
@@ -137,7 +143,6 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
         .withSecond(0)
         .withNano(1)
     val currentMonth = now.month
-    Log.d("FECHA", "$now ${now.isAfter(previousSunday) && now.isBefore(nextMonday)} y $currentMonth")
 
     // Funcion de filtrado por tipo
     fun isTypeMatching(task: Task): Boolean {
@@ -177,6 +182,31 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
         isTypeMatching(task) && isStatusMatching(task) && isDateWithinFilter(task.finishDate)
     }
 
+    // FOR BOTTOM SHEET
+    if(selectedTask.id != -1){
+        TaskActionsBottomSheet(
+            selectedTask = selectedTask,
+            onDismiss = {
+                selectedTask = emptyTask
+            },
+            onComplete = {
+                taskViewModel.updateTask(
+                    task = selectedTask.copy(isCompleted = true)
+                )
+                selectedTask = emptyTask
+            },
+            onDelete = {
+                if(selectedTask.reminder) taskViewModel.cancelNotification(context, selectedTask.title, "Acaba de expirar", selectedTask.id)
+                taskViewModel.deleteTask(task = selectedTask)
+                selectedTask = emptyTask
+            },
+            onShare = {
+                taskViewModel.shareTask(selectedTask.title, shareLauncher)
+            }
+        )
+    }
+    // END FOR BOTTOM SHEET
+
     // Define el action que deseas recibir
     val systemAction = "com.devtorres.taskalarm.TASK_RECEIVER_UDPATED"
 
@@ -196,25 +226,7 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
     Scaffold(
         topBar = {
             TopBarApp(
-                selectedTask = selectedTask,
                 filtersCount = countActiveFilters(filters),
-                taskCompleted = {
-                    Log.d("TaskViewModel", "complete: $selectedTask")
-                    taskViewModel.updateTask(
-                        task = selectedTask.copy(isCompleted = true)
-                    )
-                    selectedTask = emptyTask
-                },
-                taskDeleted = {
-                    Log.d("TaskViewModel", "delete: $selectedTask")
-
-                    if(selectedTask.reminder) taskViewModel.cancelNotification(context, selectedTask.title, "Acaba de expirar", selectedTask.id)
-                    taskViewModel.deleteTask(task = selectedTask)
-                    selectedTask = emptyTask
-                },
-                shareInformation = {
-                    taskViewModel.shareTask(selectedTask.title, shareLauncher)
-                },
                 hideFilters = {
                     isVisibleFilter = !isVisibleFilter
                 }
@@ -415,7 +427,15 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                         TaskItem(
                             task = task,
                             selectedTask = selectedTask,
-                            updateSelectedTask = { selectedTask = it }
+                            modifier = Modifier
+                                .combinedClickable(
+                                    onClick = {
+                                        selectedTask = emptyTask
+                                    },
+                                    onLongClick = {
+                                        selectedTask = task
+                                    }
+                                )
                         )
                     }
                 }
@@ -425,12 +445,98 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TaskActionsBottomSheet(
+    selectedTask: Task,
+    onDismiss: () -> Unit,
+    onComplete: () -> Unit = {},
+    onShare: () -> Unit = {},
+    onDelete: () -> Unit = {}
+) {
+    ModalBottomSheet(
+        onDismissRequest = { onDismiss() },
+        properties = ModalBottomSheetProperties(
+            isFocusable = true,
+            securePolicy = SecureFlagPolicy.SecureOn,
+            shouldDismissOnBackPress = true
+        )
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            TaskItem(task = selectedTask)
+
+            Spacer(modifier = Modifier.size(32.dp))
+
+            ActionButtonBottomSheet(
+                onClick = onComplete,
+                icon = Icons.Outlined.Done,
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = colorScheme.secondaryContainer,
+                    contentColor = colorScheme.onSecondaryContainer
+                ),
+                textResId = R.string.btnDoneTask
+            )
+
+            Spacer(modifier = Modifier.size(16.dp))
+
+            ActionButtonBottomSheet(
+                onClick = onShare,
+                icon = Icons.Outlined.Share,
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = colorScheme.tertiaryContainer,
+                    contentColor = colorScheme.onTertiaryContainer
+                ),
+                textResId = R.string.btnShareTask
+            )
+
+            Spacer(modifier = Modifier.size(16.dp))
+
+            ActionButtonBottomSheet(
+                onClick = onDelete,
+                icon = Icons.Outlined.Delete,
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = colorScheme.errorContainer,
+                    contentColor = colorScheme.onErrorContainer
+                ),
+                textResId = R.string.btnDeleteTask
+            )
+
+            Spacer(modifier = Modifier.size(32.dp))
+        }
+    }
+}
+@Composable
+fun ActionButtonBottomSheet(
+    onClick: () -> Unit,
+    icon: ImageVector,
+    textResId: Int,
+    colors: ButtonColors,
+    modifier: Modifier = Modifier
+) {
+    FilledTonalButton(
+        onClick = { onClick() },
+        shape = CardDefaults.shape,
+        colors = colors,
+        modifier = modifier
+            .fillMaxWidth(0.95f)
+            .height(50.dp)
+    ) {
+        Icon(imageVector = icon, contentDescription = null)
+        Spacer(modifier = Modifier.size(16.dp))
+        Text(text = stringResource(id = textResId))
+    }
+}
+
 @Composable
 fun getShareLauncher(
     context: Context,
     taskSuccess: String,
     taskFailure: String,
-    unSelectTask: () -> Unit
 ): ManagedActivityResultLauncher<Intent, ActivityResult> {
     return rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -438,18 +544,13 @@ fun getShareLauncher(
         } else {
             Toast.makeText(context, taskFailure, Toast.LENGTH_SHORT).show()
         }
-        unSelectTask()
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarApp(
-    selectedTask: Task,
     filtersCount: Int,
-    taskCompleted: () -> Unit = {},
-    taskDeleted: () -> Unit = {},
-    shareInformation: () -> Unit = {},
     hideFilters: () -> Unit
 ) {
     var openAbout by remember {
@@ -476,87 +577,37 @@ fun TopBarApp(
             )
         },
         actions = {
-            if(selectedTask.id == -1){
-                // icono de filtros
-                Box(
-                    modifier = Modifier
-                        .size(40.dp) // Tamaño del contenedor del icono
-                        .clickable(onClick = { hideFilters() }),
-                    contentAlignment = Alignment.Center
-                ) {
-                    BadgedBox(
-                        badge = {
-                            Badge(
-                                modifier = Modifier
-                                    .offset(1.dp, 1.dp)
-                            ) {
-                                Text(text = "$filtersCount")
-                            }
+            // icono de filtros
+            Box(
+                modifier = Modifier
+                    .size(40.dp) // Tamaño del contenedor del icono
+                    .clickable(onClick = { hideFilters() }),
+                contentAlignment = Alignment.Center
+            ) {
+                BadgedBox(
+                    badge = {
+                        Badge(
+                            modifier = Modifier
+                                .offset(1.dp, 1.dp)
+                        ) {
+                            Text(text = "$filtersCount")
                         }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.FilterList,
-                            contentDescription = stringResource(id = R.string.filterApplication)
-                        )
                     }
-                }
-
-
-                // icono de informacion
-                IconButton(onClick = { openAbout = true }) {
+                ) {
                     Icon(
-                        imageVector = Icons.Outlined.Info,
-                        contentDescription = stringResource(id = R.string.infoApplication)
+                        imageVector = Icons.Outlined.FilterList,
+                        contentDescription = stringResource(id = R.string.filterApplication)
                     )
                 }
             }
 
-            if(selectedTask.id != -1){
-                // compartir tarea
-                IconButton(
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = colorScheme.inverseSurface
-                    ),
-                    onClick = {
-                        shareInformation()
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Share,
-                        tint = colorScheme.inverseOnSurface,
-                        contentDescription = stringResource(id = R.string.infoApplication)
-                    )
-                }
 
-                // borrar tarea
-                IconButton(
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = colorScheme.errorContainer
-                    ),
-                    onClick = { taskDeleted() }
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Delete,
-                        tint = colorScheme.onErrorContainer,
-                        contentDescription = stringResource(id = R.string.infoApplication)
-                    )
-                }
-
-                // terminar tarea
-                IconButton(
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = colorScheme.primary
-                    ),
-                    onClick = { taskCompleted() }
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Done,
-                        tint = colorScheme.onPrimary,
-                        contentDescription = stringResource(id = R.string.infoApplication)
-                    )
-                }
-
-                Spacer(modifier = Modifier.size(8.dp))
+            // icono de informacion
+            IconButton(onClick = { openAbout = true }) {
+                Icon(
+                    imageVector = Icons.Outlined.Info,
+                    contentDescription = stringResource(id = R.string.infoApplication)
+                )
             }
         }
     )
@@ -581,13 +632,12 @@ fun FloatingActionApp(taskViewModel: TaskViewModel) {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TaskItem(
+    modifier: Modifier = Modifier,
     task: Task,
-    selectedTask: Task,
-    updateSelectedTask: (Task) -> Unit = {},
+    selectedTask: Task = emptyTask,
 ) {
     val localDate = task.finishDate.toLocalDate()
     val localTime = task.finishDate.toLocalTime()
@@ -604,15 +654,7 @@ fun TaskItem(
             .padding(bottom = 8.dp)
     ) {
         Row(
-            modifier = Modifier
-                .combinedClickable(
-                    onClick = {
-                        updateSelectedTask(emptyTask)
-                    },
-                    onLongClick = {
-                        updateSelectedTask(task)
-                    }
-                )
+            modifier = modifier
         ) {
             Row(
                 modifier = Modifier
@@ -667,52 +709,68 @@ fun TaskItem(
             )
         ) {
             if(task.reminder){
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(80.dp)
-                        .background( colorScheme.surfaceVariant ),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = localDate.year.toString(),
-                        style = typography.titleSmall,
-                        color = colorScheme.onSurfaceVariant,
-                        modifier = Modifier.graphicsLayer(alpha = 0.5f)
-                    )
-                    Text(
-                        text = localDate.dayOfMonth.toString(),
-                        style = typography.headlineSmall,
-                        fontWeight = FontWeight.W900,
-                        color = colorScheme.onSurfaceVariant,
-                        modifier = Modifier.graphicsLayer(alpha = 0.75f)
-                    )
-                    Row(
+                if(task.isCompleted){
+                    Column(
                         modifier = Modifier
-                            .fillMaxSize()
-                            //.background(Color(0xffB30E0F)),
-                            .background(colorScheme.tertiary),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .background(Color(0xFF3DB30E)),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.DoneOutline,
+                            contentDescription = null,
+                            tint = Color(0xFFB2FCBB),
+                            modifier = Modifier
+                                .size(50.dp)
+                        )
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .background(colorScheme.surfaceVariant),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = month,
+                            text = localDate.year.toString(),
                             style = typography.titleSmall,
+                            color = colorScheme.onSurfaceVariant,
+                            modifier = Modifier.graphicsLayer(alpha = 0.5f)
+                        )
+                        Text(
+                            text = localDate.dayOfMonth.toString(),
+                            style = typography.headlineSmall,
                             fontWeight = FontWeight.W900,
-                            letterSpacing = 4.sp,
-                            //color = Color.White,
-                            color = colorScheme.onTertiary,
+                            color = colorScheme.onSurfaceVariant,
                             modifier = Modifier.graphicsLayer(alpha = 0.75f)
                         )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(colorScheme.tertiary),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = month,
+                                style = typography.titleSmall,
+                                fontWeight = FontWeight.W900,
+                                letterSpacing = 4.sp,
+                                color = colorScheme.onTertiary,
+                                modifier = Modifier.graphicsLayer(alpha = 0.75f)
+                            )
+                        }
                     }
                 }
             } else {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(80.dp)
-                        //.background(Color(0xffB30E0F).copy(0.75f)),
+                        .height(80.dp)
                         .background(colorScheme.error),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
@@ -720,9 +778,10 @@ fun TaskItem(
                     Icon(
                         imageVector = Icons.Outlined.NotificationsOff,
                         contentDescription = null,
-                        //tint = Color.White,
                         tint = colorScheme.onError,
-                        modifier = Modifier.size(50.dp).graphicsLayer(alpha = 0.75f),
+                        modifier = Modifier
+                            .size(50.dp)
+                            .graphicsLayer(alpha = 0.75f),
                     )
                 }
             }

@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private val settingsViewModel: SettingsViewModel by viewModels {
-        SettingsViewModelFactory(application)
+        SettingsViewModelFactory(app)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
