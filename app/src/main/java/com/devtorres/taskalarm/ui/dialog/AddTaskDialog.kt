@@ -28,6 +28,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
@@ -190,7 +191,11 @@ fun AddTaskDialog(
                         tooltip = {
                             RichTooltip(
                                 title = {
-                                    Text(text = stringResource(id = R.string.lblDefaultDateTime))
+                                    Text(
+                                        text = stringResource(id = R.string.lblDefaultDateTime),
+                                        style = typography.titleMedium,
+                                        fontWeight = FontWeight.W900
+                                    )
                                 },
                                 text = {
                                     Text(text = getFormattedAnnotatedString())
@@ -351,10 +356,6 @@ fun AddTaskDialog(
                             set(Calendar.MILLISECOND, 0)
                         }
 
-                        Log.d("FECHA", "${calendar.time}")
-                        Log.d("FECHA", "$localDate $hour:$minute")
-                        Log.d("FECHA", "${localDate.atTime(hour,minute)}")
-
                         // crear una tarea para guardarla
                         val currentTask = Task(
                             title = titleTask,
@@ -414,7 +415,7 @@ fun getFormattedAnnotatedString(): AnnotatedString {
                 }
 
                 // Aplicar negrita al marcador
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = colorScheme.primary)) {
                     append(text.substring(start, end))
                 }
 
