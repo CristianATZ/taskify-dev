@@ -1,10 +1,8 @@
 package com.devtorres.taskalarm.ui.task
 
 import android.app.Activity
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -13,8 +11,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -25,12 +24,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -40,7 +39,8 @@ import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
@@ -54,21 +54,21 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
+import androidx.compose.ui.unit.sp
 import com.devtorres.taskalarm.R
 import com.devtorres.taskalarm.data.model.DateFilter
 import com.devtorres.taskalarm.data.model.Filters
@@ -80,7 +80,9 @@ import com.devtorres.taskalarm.ui.dialog.AddTaskDialog
 import com.devtorres.taskalarm.util.TaskUtils.emptyTask
 import java.time.DayOfWeek
 import java.time.LocalDateTime
+import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -403,7 +405,7 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     items(filteredTasks){ task ->
-                        TaskObject(
+                        TaskItem(
                             task = task,
                             selectedTask = selectedTask,
                             updateSelectedTask = { selectedTask = it }
@@ -430,44 +432,6 @@ fun getShareLauncher(
             Toast.makeText(context, taskFailure, Toast.LENGTH_SHORT).show()
         }
         unSelectTask()
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun TaskObject(
-    task: Task,
-    selectedTask: Task,
-    updateSelectedTask: (Task) -> Unit = {},
-) {
-    Card(
-        modifier = Modifier
-            .padding(bottom = 16.dp)
-            .fillMaxWidth(0.95f)
-            .heightIn(50.dp)
-            .combinedClickable(
-                onClick = {
-                    updateSelectedTask(emptyTask)
-                },
-                onLongClick = {
-                    Log.d("TaskViewModel", "antes: $task")
-                    updateSelectedTask(task)
-                }
-            ),
-        border = if(selectedTask == task) BorderStroke(2.dp, colorScheme.secondary) else null
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = task.title,
-                style = typography.titleLarge
-            )
-        }
     }
 }
 
@@ -594,8 +558,6 @@ fun TopBarApp(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FloatingActionApp(taskViewModel: TaskViewModel) {
-    val context = LocalContext.current
-
     var openDialog by remember {
         mutableStateOf(false)
     }
@@ -609,5 +571,134 @@ fun FloatingActionApp(taskViewModel: TaskViewModel) {
 
     FloatingActionButton(onClick = { openDialog = !openDialog }) {
         Icon(imageVector = Icons.Filled.Add, contentDescription = null)
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun TaskItem(
+    task: Task,
+    selectedTask: Task,
+    updateSelectedTask: (Task) -> Unit = {},
+) {
+    val localDate = task.finishDate.toLocalDate()
+    val localTime = task.finishDate.toLocalTime()
+
+    val dayOfWeek = localDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale("es", "ES"))
+        .uppercase(Locale.getDefault())
+
+    val month = localDate.month.getDisplayName(TextStyle.SHORT, Locale("es", "ES"))
+        .uppercase(Locale.getDefault())
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(0.95f)
+            .padding(bottom = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .combinedClickable(
+                    onClick = {
+                        updateSelectedTask(emptyTask)
+                    },
+                    onLongClick = {
+                        Log.d("FECHA", task.toString())
+                        Log.d("FECHA", selectedTask.toString())
+                        updateSelectedTask(task)
+                        Log.d("FECHA", selectedTask.toString())
+                    }
+                )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(0.75f)
+                    .border(
+                        if(selectedTask == task) 2.dp else 1.dp,
+                        if(selectedTask == task) colorScheme.inverse else colorScheme.outline,
+                        RoundedCornerShape(8.dp)
+                    )
+                    .padding(16.dp)
+            ) {
+                // dia y hora
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = dayOfWeek,
+                        style = typography.headlineSmall,
+                        fontWeight = FontWeight.W900,
+                        modifier = Modifier
+                            .graphicsLayer(alpha = 0.75f)
+                    )
+                    Text(
+                        text = localTime.toString(),
+                        style = typography.labelMedium,
+                        modifier = Modifier
+                            .graphicsLayer(alpha = 0.5f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.size(16.dp))
+
+                // titulo tarea
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = task.title,
+                        style = typography.labelMedium
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.size(16.dp))
+
+        ElevatedCard(
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 4.dp
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background( colorScheme.surfaceVariant ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = localDate.year.toString(),
+                    style = typography.titleSmall,
+                    color = colorScheme.onSurfaceVariant,
+                    modifier = Modifier.graphicsLayer(alpha = 0.5f)
+                )
+                Text(
+                    text = localDate.dayOfMonth.toString(),
+                    style = typography.headlineSmall,
+                    fontWeight = FontWeight.W900,
+                    color = colorScheme.onSurfaceVariant,
+                    modifier = Modifier.graphicsLayer(alpha = 0.75f)
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xffB30E0F)),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = month,
+                        style = typography.titleSmall,
+                        fontWeight = FontWeight.W900,
+                        letterSpacing = 4.sp,
+                        color = Color.White,
+                        modifier = Modifier.graphicsLayer(alpha = 0.75f)
+                    )
+                }
+            }
+        }
     }
 }
