@@ -15,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.devtorres.taskalarm.ui.task.MainScreen
 import com.devtorres.taskalarm.ui.task.PermissionRequestEffect
@@ -45,6 +46,7 @@ class MainActivity : ComponentActivity() {
             NotificationHelper.createNotificationChannels(applicationContext)
         }
 
+        installSplashScreen()
         enableEdgeToEdge()
         setContent {
             val navHostController = rememberNavController()

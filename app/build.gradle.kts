@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     ksp(libs.androidx.room.compiler)
     // END FOR ROOM
 
