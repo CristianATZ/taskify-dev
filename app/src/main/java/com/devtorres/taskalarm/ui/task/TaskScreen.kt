@@ -3,7 +3,9 @@ package com.devtorres.taskalarm.ui.task
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -31,7 +33,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Done
@@ -49,7 +50,6 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,6 +58,10 @@ import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -65,6 +69,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,9 +89,9 @@ import com.devtorres.taskalarm.data.model.StatusFilter
 import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.data.model.TypeFilter
 import com.devtorres.taskalarm.ui.dialog.AboutDialog
-import com.devtorres.taskalarm.ui.dialog.AddTaskDialog
 import com.devtorres.taskalarm.ui.theme.doneScheme
 import com.devtorres.taskalarm.util.TaskUtils.emptyTask
+import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.format.TextStyle
@@ -98,10 +103,12 @@ import java.util.Locale
 @Composable
 fun TaskScreen(taskViewModel: TaskViewModel) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     var selectedTask by remember { mutableStateOf(emptyTask) }
     val taskUiState by taskViewModel.uiState.collectAsState()
     var filters by remember { mutableStateOf(Filters()) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val shareLauncher = getShareLauncher(
         context = context,
@@ -218,6 +225,29 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
         }
     )
 
+    // Dialogo para la peticion de permisos
+    val messageAction = stringResource(id = R.string.lblGoConfiguration)
+    PermissionDialog(
+        showMessage = { message ->
+            scope.launch {
+                val resultActionSnack = snackbarHostState.showSnackbar(
+                    message = message,
+                    duration = SnackbarDuration.Short,
+                    actionLabel = messageAction
+                )
+
+                when {
+                    resultActionSnack == SnackbarResult.ActionPerformed -> {
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.parse("package:${context.packageName}")
+                        }
+                        context.startActivity(intent)
+                    }
+                }
+            }
+        }
+    )
+
     Scaffold(
         topBar = {
             TopBarApp(
@@ -227,6 +257,9 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                 }
             )
         },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -410,7 +443,10 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
                 
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp).graphicsLayer(alpha = 0.25f)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp)
+                        .graphicsLayer(alpha = 0.25f)
                 ) {
                     Text(
                         text = "${filteredTasks.size} resultados",

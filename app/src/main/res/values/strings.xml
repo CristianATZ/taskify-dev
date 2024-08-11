@@ -51,4 +51,8 @@
     <string name="btnDoneTask">Marcar tarea como completada</string>
     <string name="btnDeleteTask">Eliminar tarea</string>
     <string name="btnShareTask">Compartir tarea</string>
+    <string name="lblNotificationsPermissionsGranted">Notificaciones activadas</string>
+    <string name="lblNotificationsPermissionsNoGranted">Para activar las notificaciones ve a la configuracion de la aplicacion.</string>
+    <string name="lblPermissionDenied">Ve a la configuracion de la aplicacion.</string>
+    <string name="lblGoConfiguration">Ir</string>
 </resources>

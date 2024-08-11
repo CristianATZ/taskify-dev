@@ -1,10 +1,11 @@
 package com.devtorres.taskalarm
 
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -12,11 +13,11 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
+import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
-import androidx.work.impl.utils.ForceStopRunnable
-import com.devtorres.taskalarm.data.database.AppDataBase
-import com.devtorres.taskalarm.data.repository.TaskRepositoryImpl
 import com.devtorres.taskalarm.ui.task.MainScreen
+import com.devtorres.taskalarm.ui.task.PermissionRequestEffect
 import com.devtorres.taskalarm.ui.task.SettingsViewModel
 import com.devtorres.taskalarm.ui.task.SettingsViewModelFactory
 import com.devtorres.taskalarm.ui.task.TaskViewModel
@@ -46,7 +47,6 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-
             val navHostController = rememberNavController()
 
             val isDarkTheme by settingsViewModel.theme.collectAsState(initial = false)

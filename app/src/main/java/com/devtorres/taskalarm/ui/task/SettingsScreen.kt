@@ -1,5 +1,14 @@
 package com.devtorres.taskalarm.ui.task
 
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,15 +32,19 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.devtorres.taskalarm.R
 import kotlinx.coroutines.launch
 
@@ -39,19 +52,18 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(
     settingsViewModel: SettingsViewModel
 ) {
+
     val isDarkTheme by settingsViewModel.theme.collectAsState(initial = false)
-    val isNotificationEnabled by settingsViewModel.notification.collectAsState(initial = true)
 
     val themeStringId = if(isDarkTheme) R.string.lblDarkTheme else R.string.lblLightTheme
-    val notiStringId = if(isNotificationEnabled) R.string.lblNotiActi else R.string.lblNotiDes
 
     Scaffold(
         topBar = { TopBarSettings() }
-    ) {
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it),
+                .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
@@ -62,14 +74,6 @@ fun SettingsScreen(
                 text = stringResource(id = themeStringId),
                 isChecked = isDarkTheme,
                 onCheckedChange = { settingsViewModel.saveTheme(it) }
-            )
-
-            SettingsRow(
-                icon = Icons.Filled.Notifications,
-                contentDescription = null,
-                text = stringResource(id = notiStringId),
-                isChecked = isNotificationEnabled,
-                onCheckedChange = { settingsViewModel.saveNotification(it) }
             )
         }
     }
@@ -97,8 +101,6 @@ fun SettingsRow(
     isChecked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
-
     Row(
         modifier = Modifier
             .fillMaxWidth(0.95f)
@@ -121,9 +123,7 @@ fun SettingsRow(
         Switch(
             checked = isChecked,
             onCheckedChange = {
-                coroutineScope.launch {
-                    onCheckedChange(it)
-                }
+                onCheckedChange(it)
             }
         )
 

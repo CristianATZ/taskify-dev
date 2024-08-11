@@ -1,6 +1,5 @@
 package com.devtorres.taskalarm.ui.task
 
-import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -15,17 +14,10 @@ class SettingsViewModel(
     private val userPreferences = UserPreferences(application)
 
     val theme = userPreferences.theme
-    val notification = userPreferences.notification
 
     fun saveTheme(isDarkMode: Boolean) {
         viewModelScope.launch {
             userPreferences.saveTheme(isDarkMode, application)
-        }
-    }
-
-    fun saveNotification(isEnabled: Boolean) {
-        viewModelScope.launch {
-            userPreferences.saveNotifications(isEnabled, application)
         }
     }
 }
