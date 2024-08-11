@@ -55,4 +55,5 @@
     <string name="lblNotificationsPermissionsNoGranted">Para activar las notificaciones ve a la configuracion de la aplicacion.</string>
     <string name="lblPermissionDenied">Ve a la configuracion de la aplicacion.</string>
     <string name="lblGoConfiguration">Ir</string>
+    <string name="lblClose">Cerrar</string>
 </resources>

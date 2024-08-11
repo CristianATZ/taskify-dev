@@ -17,12 +17,15 @@ import com.devtorres.taskalarm.R
 @Composable
 fun PermissionDialog(
     modifier: Modifier = Modifier,
-    showMessage: (String) -> Unit
+    showMessage: (String, String, Boolean) -> Unit
 ) {
     val context = LocalContext.current
 
     val lblNotificationGranted = stringResource(id = R.string.lblNotificationsPermissionsGranted)
     val lblNotificationNoGranted = stringResource(id = R.string.lblNotificationsPermissionsNoGranted)
+
+    val actionPerformed = stringResource(id = R.string.lblGoConfiguration)
+    val close = ""
 
     // verifica en que android se esta ejecutando la aplicacion
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -31,9 +34,9 @@ fun PermissionDialog(
             // ejecuta la peticion del permiso al ususario
             PermissionRequestEffect(permission = Manifest.permission.POST_NOTIFICATIONS) { isGranted ->
                 if(isGranted) {
-                    showMessage(lblNotificationGranted)
+                    showMessage(lblNotificationGranted, close, false)
                 } else {
-                    showMessage(lblNotificationNoGranted)
+                    showMessage(lblNotificationNoGranted, actionPerformed, true)
                 }
             }
         }

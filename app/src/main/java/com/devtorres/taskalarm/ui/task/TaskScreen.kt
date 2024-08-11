@@ -226,23 +226,29 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
     )
 
     // Dialogo para la peticion de permisos
-    val messageAction = stringResource(id = R.string.lblGoConfiguration)
     PermissionDialog(
-        showMessage = { message ->
+        showMessage = { message, messageAction, close ->
             scope.launch {
-                val resultActionSnack = snackbarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short,
-                    actionLabel = messageAction
-                )
+                val resultActionSnack: SnackbarResult? = null
 
-                when {
-                    resultActionSnack == SnackbarResult.ActionPerformed -> {
-                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = Uri.parse("package:${context.packageName}")
-                        }
-                        context.startActivity(intent)
+                if(close){
+                    snackbarHostState.showSnackbar(
+                        message = message,
+                        duration = SnackbarDuration.Short,
+                        actionLabel = messageAction
+                    )
+                } else {
+                    snackbarHostState.showSnackbar(
+                        message = message,
+                        duration = SnackbarDuration.Short
+                    )
+                }
+
+                if(close){
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.parse("package:${context.packageName}")
                     }
+                    context.startActivity(intent)
                 }
             }
         }
