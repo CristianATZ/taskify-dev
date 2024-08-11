@@ -5,7 +5,7 @@
 
     <style name="Theme.SplashScreen.MySplash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#FF35618E</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/taskify</item>
         <item name="postSplashScreenTheme">@style/Theme.Taskify</item>
     </style>
 
