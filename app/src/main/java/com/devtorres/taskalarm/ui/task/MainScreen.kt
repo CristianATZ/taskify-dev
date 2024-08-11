@@ -17,14 +17,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Task
-import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Task
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FloatingActionButton
@@ -32,9 +28,7 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,11 +38,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.devtorres.taskalarm.R
 import com.devtorres.taskalarm.ui.dialog.AddTaskDialog
 import com.devtorres.taskalarm.ui.navigation.Destinations
 import com.devtorres.taskalarm.ui.navigation.NavGraph
@@ -83,7 +75,10 @@ fun MainScreen(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun BottomBarCustom(navHostController: NavHostController, taskViewModel: TaskViewModel) {
+fun BottomBarCustom(
+    navHostController: NavHostController,
+    taskViewModel: TaskViewModel
+) {
     val navBackStackEntry by navHostController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -119,7 +114,12 @@ fun BottomBarCustom(navHostController: NavHostController, taskViewModel: TaskVie
                     )
 
                     IconButton(
-                        onClick = { navHostController.navigate(Destinations.Home.route) },
+                        onClick = {
+                            navHostController.navigate(Destinations.Home.route) {
+                                popUpTo(Destinations.Home.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        },
                         modifier = Modifier
                             .size(75.dp)
                     ) {
@@ -143,7 +143,12 @@ fun BottomBarCustom(navHostController: NavHostController, taskViewModel: TaskVie
                     )
 
                     IconButton(
-                        onClick = { navHostController.navigate(Destinations.Settings.route) },
+                        onClick = {
+                            navHostController.navigate(Destinations.Settings.route) {
+                                popUpTo(Destinations.Settings.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        },
                         modifier = Modifier
                             .size(75.dp)
                     ) {
@@ -195,49 +200,4 @@ fun FloatingActionApp(taskViewModel: TaskViewModel) {
             modifier = Modifier.fillMaxSize(0.5f)
         )
     }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun BottomBarApp(
-    navHostController: NavHostController
-) {
-    val navBackStackEntry by navHostController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
-    BottomAppBar(
-        actions = {
-            NavigationBarItem(
-                selected = currentRoute == Destinations.Home.route,
-                onClick = { navHostController.navigate(Destinations.Home.route) },
-                icon = {
-                    Icon(
-                        imageVector = if(currentRoute == Destinations.Home.route) Icons.Filled.Task else Icons.Outlined.Task,
-                        contentDescription = null
-                    )
-                },
-                label = {
-                    Text(
-                        text = stringResource(id = R.string.lblTasks)
-                    )
-                }
-            )
-
-            NavigationBarItem(
-                selected = currentRoute == Destinations.Settings.route,
-                onClick = { navHostController.navigate(Destinations.Settings.route) },
-                icon = {
-                    Icon(
-                        imageVector = if(currentRoute == Destinations.Settings.route) Icons.Filled.DarkMode else Icons.Outlined.DarkMode,
-                        contentDescription = null
-                    )
-                },
-                label = {
-                    Text(
-                        text = stringResource(id = R.string.lblTheme)
-                    )
-                }
-            )
-        }
-    )
 }
