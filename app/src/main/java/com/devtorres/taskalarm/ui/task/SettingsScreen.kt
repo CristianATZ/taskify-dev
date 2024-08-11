@@ -22,6 +22,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -52,10 +54,17 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(
     settingsViewModel: SettingsViewModel
 ) {
+    val context = LocalContext.current
+    val isGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+    } else {
+        true
+    }
 
     val isDarkTheme by settingsViewModel.theme.collectAsState(initial = false)
 
     val themeStringId = if(isDarkTheme) R.string.lblDarkTheme else R.string.lblLightTheme
+    val notificationStringId = if(isGranted) R.string.lblNotiActi else R.string.lblNotiDes
 
     Scaffold(
         topBar = { TopBarSettings() }
@@ -69,11 +78,19 @@ fun SettingsScreen(
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
             SettingsRow(
-                icon = Icons.Filled.DarkMode,
+                icon = Icons.Outlined.DarkMode,
                 contentDescription = null,
                 text = stringResource(id = themeStringId),
                 isChecked = isDarkTheme,
                 onCheckedChange = { settingsViewModel.saveTheme(it) }
+            )
+
+            SettingsRow(
+                icon = Icons.Outlined.Notifications,
+                contentDescription = null,
+                text = stringResource(id = notificationStringId),
+                isChecked = isGranted,
+                onCheckedChange = {  }
             )
         }
     }
@@ -99,6 +116,7 @@ fun SettingsRow(
     contentDescription: String?,
     text: String,
     isChecked: Boolean,
+    enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
@@ -122,6 +140,7 @@ fun SettingsRow(
 
         Switch(
             checked = isChecked,
+            enabled = enabled,
             onCheckedChange = {
                 onCheckedChange(it)
             }
