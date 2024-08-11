@@ -138,7 +138,6 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
         .withMinute(0)
         .withSecond(0)
         .withNano(1)
-    val currentMonth = now.month
 
     // Funcion de filtrado por tipo
     fun isTypeMatching(task: Task): Boolean {
@@ -409,6 +408,15 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                 // END FOR lista de filtros
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp).graphicsLayer(alpha = 0.25f)
+                ) {
+                    Text(
+                        text = "${filteredTasks.size} resultados",
+                        style = typography.titleMedium
+                    )
+                }
 
                 // FOR lista de tareas
                 LazyColumn(
@@ -637,7 +645,9 @@ fun TaskItem(
                     .fillMaxWidth(0.75f)
                     .border(
                         if (selectedTask == task) 2.dp else 1.dp,
-                        if (selectedTask == task) colorScheme.inversePrimary else colorScheme.outline.copy(0.25f),
+                        if (selectedTask == task) colorScheme.inversePrimary else colorScheme.outline.copy(
+                            0.25f
+                        ),
                         RoundedCornerShape(8.dp)
                     )
                     .padding(16.dp)
@@ -699,7 +709,7 @@ fun TaskItem(
                             contentDescription = null,
                             tint = doneScheme.onColor,
                             modifier = Modifier
-                                .size(50.dp)
+                                .size(35.dp)
                         )
                     }
                 } else {
@@ -756,7 +766,7 @@ fun TaskItem(
                         contentDescription = null,
                         tint = colorScheme.onError,
                         modifier = Modifier
-                            .size(50.dp)
+                            .size(35.dp)
                             .graphicsLayer(alpha = 0.75f),
                     )
                 }
