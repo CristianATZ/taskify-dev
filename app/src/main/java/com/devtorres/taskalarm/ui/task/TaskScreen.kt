@@ -228,9 +228,9 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                 }
             )
         },
-        floatingActionButton = {
+        /*floatingActionButton = {
             FloatingActionApp(taskViewModel = taskViewModel)
-        }
+        }*/
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -609,25 +609,6 @@ fun TopBarApp(
             }
         }
     )
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun FloatingActionApp(taskViewModel: TaskViewModel) {
-    var openDialog by remember {
-        mutableStateOf(false)
-    }
-
-    if(openDialog){
-        AddTaskDialog(
-            taskViewModel = taskViewModel,
-            closeDialog = { openDialog = false }
-        )
-    }
-
-    FloatingActionButton(onClick = { openDialog = !openDialog }) {
-        Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

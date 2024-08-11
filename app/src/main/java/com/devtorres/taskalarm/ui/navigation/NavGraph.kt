@@ -23,7 +23,7 @@ fun NavGraph(
             TaskScreen(taskViewModel = taskViewModel)
         }
 
-        composable(route = Destinations.Theme.route){
+        composable(route = Destinations.Settings.route){
             SettingsScreen(settingsViewModel = settingsViewModel)
         }
     }
