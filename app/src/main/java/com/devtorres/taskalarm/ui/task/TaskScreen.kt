@@ -228,9 +228,6 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                 }
             )
         },
-        /*floatingActionButton = {
-            FloatingActionApp(taskViewModel = taskViewModel)
-        }*/
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -640,7 +637,7 @@ fun TaskItem(
                     .fillMaxWidth(0.75f)
                     .border(
                         if (selectedTask == task) 2.dp else 1.dp,
-                        if (selectedTask == task) colorScheme.inversePrimary else colorScheme.outline,
+                        if (selectedTask == task) colorScheme.inversePrimary else colorScheme.outline.copy(0.25f),
                         RoundedCornerShape(8.dp)
                     )
                     .padding(16.dp)

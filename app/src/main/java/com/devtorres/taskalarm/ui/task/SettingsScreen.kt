@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
@@ -53,6 +54,8 @@ fun SettingsScreen(
                 .padding(it),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
             SettingsRow(
                 icon = Icons.Filled.DarkMode,
                 contentDescription = null,
@@ -99,7 +102,7 @@ fun SettingsRow(
     Row(
         modifier = Modifier
             .fillMaxWidth(0.95f)
-            .border(1.dp, colorScheme.onBackground.copy(0.25f), RoundedCornerShape(8.dp)),
+            .border(1.dp, colorScheme.outline.copy(0.25f), RoundedCornerShape(8.dp)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Spacer(modifier = Modifier.size(16.dp))
