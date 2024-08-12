@@ -44,7 +44,7 @@ object NotificationHelper {
     @SuppressLint("MissingPermission")
     fun showTaskNotification(context: Context, title: String, content: String, requestCode: Int){
         val builder = NotificationCompat.Builder(context, TASK_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setSmallIcon(R.drawable.t_noti)
             .setContentTitle(title)
             .setContentText(content)
             .setVibrate(LongArray(0))
@@ -58,7 +58,7 @@ object NotificationHelper {
     @SuppressLint("MissingPermission")
     fun showUpdateNotification(context: Context, title: String, content: String){
         val builder = NotificationCompat.Builder(context, UPDATE_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.t_noti)
             .setContentTitle(title)
             .setContentText(content)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
