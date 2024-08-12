@@ -110,7 +110,7 @@ fun AddTaskDialog(
         mutableStateOf(false)
     }
 
-    var datePickerState = rememberDatePickerState(
+    val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
     )
 
@@ -139,13 +139,14 @@ fun AddTaskDialog(
     // EN FOR calendario alarManager
 
     // FOR validaciones
-    var validations by remember {
-        mutableStateOf(TaskValidations())
-    }
-
     var validationsState by remember {
         mutableStateOf(TaskValidationsBoolean())
     }
+
+    fun updateValidationState(title: Boolean, date: Boolean, time: Boolean) {
+        validationsState = TaskValidationsBoolean(title = title, date = date, time = time)
+    }
+    // END FOR validaciones
 
     // FOR asignaciones
     var assigment by remember {
@@ -184,30 +185,19 @@ fun AddTaskDialog(
             set(Calendar.MILLISECOND, 0)
         }
 
-        validations = TaskValidations(titleTask, localDate, localTime)
+        val isCurrentDate = localDate == LocalDate.now()
+        val isPastDate = localDate < LocalDate.now()
+        val isTimeValid = if (assigment.date && assigment.hour) {
+            if (isCurrentDate || isPastDate) validationsState.isTime(localTime) else validationsState.isDateTime(localDate, localTime)
+        } else true
 
-        val typeValidation = when(assigment){
-            // solo fecha
-            AssigmentTask(date = true, hour = false, noreminder = false) -> validations.isDate()
-            // solo hora
-            AssigmentTask(date = false, hour = true, noreminder = false) -> validations.isTime()
-            // hora y fecha
-            AssigmentTask(date = true, hour = true, noreminder = false) -> validations.isValid()
-            // solo nombre
-            else -> validations.isNoAssigment()
-        }
-
-
-
-        validationsState = TaskValidationsBoolean(
-            title = titleTask.isNotEmpty(),
-            date = localDate >= LocalDate.now(),
-            time = localTime >= LocalTime.now()
+        updateValidationState(
+            validationsState.isNoAssigment(titleTask),
+            if (assigment.date) validationsState.isDate(localDate) else true,
+            isTimeValid
         )
 
-        Log.d("VALIDACION", typeValidation.toString())
-
-        if(typeValidation){
+        if(validationsState.isValid()){
             // crear una tarea para guardarla
             val currentTask = Task(
                 title = titleTask,
