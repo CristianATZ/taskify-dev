@@ -63,12 +63,14 @@ import androidx.compose.ui.window.Dialog
 import com.devtorres.taskalarm.R
 import com.devtorres.taskalarm.data.model.AssigmentTask
 import com.devtorres.taskalarm.data.model.Task
+import com.devtorres.taskalarm.data.model.TaskValidations
+import com.devtorres.taskalarm.data.model.TaskValidationsBoolean
 import com.devtorres.taskalarm.ui.task.TaskViewModel
+import com.devtorres.taskalarm.util.TaskUtils.emptyValidationsState
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -87,22 +89,17 @@ fun AddTaskDialog(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    var assigment by remember {
-        mutableStateOf(AssigmentTask())
-    }
-
     // FOR propiedades de la tarea
     var titleTask by remember {
         mutableStateOf("")
     }
     // END FOR propiedades de la tarea
-    fun updateAssigments(date: Boolean, hour: Boolean, noreminder: Boolean) {
-        assigment = AssigmentTask(date, hour, noreminder)
-    }
 
+    // FOR tip
     val toolTipState = rememberTooltipState(
         isPersistent = true
     )
+    // END FOR tip
 
     // FOR dialog pickers
     var openDatePicker by remember {
@@ -113,7 +110,7 @@ fun AddTaskDialog(
         mutableStateOf(false)
     }
 
-    val datePickerState = rememberDatePickerState(
+    var datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
     )
 
@@ -130,7 +127,6 @@ fun AddTaskDialog(
             LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
         )
     }
-
     var selectedHour by remember {
         mutableStateOf("07:00 a. m.")
     }
@@ -142,6 +138,100 @@ fun AddTaskDialog(
     }
     // EN FOR calendario alarManager
 
+    // FOR validaciones
+    var validations by remember {
+        mutableStateOf(TaskValidations())
+    }
+
+    var validationsState by remember {
+        mutableStateOf(TaskValidationsBoolean())
+    }
+
+    // FOR asignaciones
+    var assigment by remember {
+        mutableStateOf(AssigmentTask())
+    }
+
+    fun updateAssigments(date: Boolean, hour: Boolean, noreminder: Boolean) {
+        assigment = AssigmentTask(date, hour, noreminder)
+        validationsState = emptyValidationsState
+    }
+    // END FOR asignaciones
+
+
+    // FOR validaciones
+    fun validateAndSaveTask() {
+        // obtener hora y minuto del timepicker
+        val localTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
+
+        // convertir la fecha seleccionada a milisegundos
+        val milis = datePickerState.selectedDateMillis ?: 0
+
+        // convertir la fecha a un localdate
+        val localDate = when {
+            !assigment.date && assigment.hour -> LocalDate.now().plusDays(1)
+            assigment.date -> Instant.ofEpochMilli(milis).atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1)
+            else -> LocalDate.now()
+        }
+
+        // convertir el localdate, hora y minuto para generar un calendar
+        // se usara para el alarmManager
+        calendar = Calendar.getInstance().apply {
+            timeInMillis = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            set(Calendar.HOUR_OF_DAY, localTime.hour)
+            set(Calendar.MINUTE, localTime.minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        validations = TaskValidations(titleTask, localDate, localTime)
+
+        val typeValidation = when(assigment){
+            // solo fecha
+            AssigmentTask(date = true, hour = false, noreminder = false) -> validations.isDate()
+            // solo hora
+            AssigmentTask(date = false, hour = true, noreminder = false) -> validations.isTime()
+            // hora y fecha
+            AssigmentTask(date = true, hour = true, noreminder = false) -> validations.isValid()
+            // solo nombre
+            else -> validations.isNoAssigment()
+        }
+
+
+
+        validationsState = TaskValidationsBoolean(
+            title = titleTask.isNotEmpty(),
+            date = localDate >= LocalDate.now(),
+            time = localTime >= LocalTime.now()
+        )
+
+        Log.d("VALIDACION", typeValidation.toString())
+
+        if(typeValidation){
+            // crear una tarea para guardarla
+            val currentTask = Task(
+                title = titleTask,
+                isCompleted = false,
+                reminder = assigment.date || assigment.hour,
+                finishDate = localDate.atTime(localTime.hour, localTime.minute)
+            )
+
+            // llamar la implementacion de agregar tarea del viewmodel
+            taskViewModel.addtask(
+                task = currentTask,
+                content = "Tarea agregada",
+                context = context,
+                calendar = calendar
+            )
+
+            // limpiar la caja de texto
+            titleTask = ""
+
+            // cerrar dialogo
+            closeDialog()
+        }
+    }
+    // END FOR validaciones
 
     if(openDatePicker) {
         DatePickerDialog(
@@ -253,9 +343,6 @@ fun AddTaskDialog(
                     FilterChip(
                         selected = assigment.noreminder,
                         onClick = {
-                            selectedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                            selectedHour = "07:00 a. m."
-
                             updateAssigments(date = false, hour = false, noreminder = true)
                         },
                         label = {
@@ -282,6 +369,18 @@ fun AddTaskDialog(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     modifier = Modifier.fillMaxWidth()
                 )
+                if(!validationsState.title) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.lblTitleEmpty),
+                            style = typography.labelSmall,
+                            color = colorScheme.error
+                        )
+                    }
+                }
 
                 if(assigment.date){
                     Spacer(modifier = Modifier.size(16.dp))
@@ -304,6 +403,18 @@ fun AddTaskDialog(
                         },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    if(!validationsState.date) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.lblDateWrong),
+                                style = typography.labelSmall,
+                                color = colorScheme.error
+                            )
+                        }
+                    }
                 }
 
                 if(assigment.hour){
@@ -326,57 +437,26 @@ fun AddTaskDialog(
                             fontWeight = FontWeight.W500
                         )
                     }
+
+                    if(!validationsState.time) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.lblTimeWrong),
+                                style = typography.labelSmall,
+                                color = colorScheme.error
+                            )
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.size(32.dp))
 
                 Button(
                     onClick = {
-                        // obtener hora y minuto del timepicker
-                        val hour = timePickerState.hour
-                        val minute = timePickerState.minute
-
-                        // convertir la fecha seleccionada a milisegundos
-                        val milis = datePickerState.selectedDateMillis ?: 0
-
-                        // convertir la fecha a un localdate
-                        val localDate = when {
-                            !assigment.date && assigment.hour -> LocalDate.now().plusDays(1)
-                            assigment.date -> Instant.ofEpochMilli(milis).atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1)
-                            else -> LocalDate.now()
-                        }
-
-                        // convertir el localdate, hora y minuto para generar un calendar
-                        // se usara para el alarmManager
-                        calendar = Calendar.getInstance().apply {
-                            timeInMillis = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                            set(Calendar.HOUR_OF_DAY, hour)
-                            set(Calendar.MINUTE, minute)
-                            set(Calendar.SECOND, 0)
-                            set(Calendar.MILLISECOND, 0)
-                        }
-
-                        // crear una tarea para guardarla
-                        val currentTask = Task(
-                            title = titleTask,
-                            isCompleted = false,
-                            reminder = assigment.date || assigment.hour,
-                            finishDate = localDate.atTime(hour,minute)
-                        )
-
-                        // llamar la implementacion de agregar tarea del viewmodel
-                        taskViewModel.addtask(
-                            task = currentTask,
-                            content = "Tarea agregada",
-                            context = context,
-                            calendar = calendar
-                        )
-
-                        // limpiar la caja de texto
-                        titleTask = ""
-
-                        // cerrar dialogo
-                        closeDialog()
+                        validateAndSaveTask()
                     },
                     shape = RoundedCornerShape(4.dp),
                     modifier = Modifier

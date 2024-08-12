@@ -3,6 +3,7 @@ package com.devtorres.taskalarm.util
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.devtorres.taskalarm.data.model.Task
+import com.devtorres.taskalarm.data.model.TaskValidationsBoolean
 import java.time.LocalDateTime
 
 object TaskUtils {
@@ -14,4 +15,6 @@ object TaskUtils {
         reminder = false,
         finishDate = LocalDateTime.now()
     )
+
+    val emptyValidationsState = TaskValidationsBoolean(title = true, date = true, time = true)
 }
