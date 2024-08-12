@@ -12,9 +12,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_tsky"
+        android:icon="@mipmap/taskify"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_tsky"
+        android:roundIcon="@mipmap/taskify"
         android:supportsRtl="true"
         android:theme="@style/Theme.Taskify"
         tools:targetApi="31">
