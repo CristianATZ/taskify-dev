@@ -55,9 +55,6 @@ fun MainScreen(
 ) {
     Scaffold(
         bottomBar = {
-            /*BottomBarApp(
-                navHostController
-            )*/
             BottomBarCustom(navHostController, taskViewModel)
         }
     ) {

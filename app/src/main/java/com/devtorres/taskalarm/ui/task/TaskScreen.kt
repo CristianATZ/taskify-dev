@@ -243,9 +243,9 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
     PermissionDialog(
         showMessage = { message, messageAction, close ->
             scope.launch {
-                val resultActionSnack: SnackbarResult? = null
+                var resultActionSnack: SnackbarResult? = null
 
-                if(close){
+                resultActionSnack = if(close){
                     snackbarHostState.showSnackbar(
                         message = message,
                         duration = SnackbarDuration.Short,
@@ -258,7 +258,7 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                     )
                 }
 
-                if(close){
+                if(close && resultActionSnack == SnackbarResult.ActionPerformed){
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                         data = Uri.parse("package:${context.packageName}")
                     }
