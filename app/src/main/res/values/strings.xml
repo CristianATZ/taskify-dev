@@ -59,4 +59,5 @@
     <string name="lblTitleEmpty">El nombre no puede estar vacio.</string>
     <string name="lblDateWrong">La fecha debe ser hoy o futura.</string>
     <string name="lblTimeWrong">La hora debe ser una hora futura.</string>
+    <string name="lblNoResults">No hay tareas para mostrar.</string>
 </resources>
