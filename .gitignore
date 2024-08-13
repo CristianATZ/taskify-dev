@@ -4,6 +4,7 @@ build/
 
 # Local configuration file (sdk path, etc)
 local.properties
+keystore.properties
 
 # Log/OS Files
 *.log
@@ -12,7 +13,6 @@ local.properties
 captures/
 .externalNativeBuild/
 .cxx/
-*.apk
 output.json
 
 # IntelliJ
@@ -26,8 +26,7 @@ render.experimental.xml
 *.jks
 *.keystore
 
-# Excluir carpetas de construcción
-build/
+# Excluir archivos y carpetas de construcción
 *.apk
 *.aab
 
