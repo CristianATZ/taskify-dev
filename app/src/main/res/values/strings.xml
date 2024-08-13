@@ -8,16 +8,16 @@
     <string name="lblTaskCompleted">Tareas completadas</string>
     <string name="lblTask">Tarea</string>
     <string name="lblPending">Pendientes</string>
-    <string name="infoApplication">Info</string>
-    <string name="lblShare">Comparitr nota</string>
-    <string name="lblShareTask">Compatir tarea</string>
+    <string name="infoApplication">Información</string>
+    <string name="lblShare">Compartir nota</string>
+    <string name="lblShareTask">Compartir tarea</string>
     <string name="lblAbout">Acerca de</string>
-    <string name="infoAbout">Boton de acerca de</string>
-    <string name="infoShareTask">Boton de compartir tarea</string>
-    <string name="infoAboutTitle">Icono de desarrollo</string>
-    <string name="lblVersion">Version</string>
+    <string name="infoAbout">Botón de acerca de</string>
+    <string name="infoShareTask">Botón de compartir tarea</string>
+    <string name="infoAboutTitle">Ícono de desarrollo</string>
+    <string name="lblVersion">Versión</string>
     <string name="app_version">0.0.1</string>
-    <string name="lblNoTask">Cuando agregues tareas las veras aqui.</string>
+    <string name="lblNoTask">Cuando agregues tareas, las verás aquí.</string>
     <string name="lblDarkTheme">Tema oscuro</string>
     <string name="lblLightTheme">Tema claro</string>
     <string name="lblNotiActi">Notificaciones activadas</string>
@@ -26,9 +26,9 @@
     <string name="lblShareSuccess">Compartido exitosamente</string>
     <string name="lblShareCancel">Compartir tarea cancelada</string>
     <string name="lblCopyright">© 2024 Cristian Alexis Torres Zavala</string>
-    <string name="txtTaskName">Nombre tarea</string>
+    <string name="txtTaskName">Nombre de la tarea</string>
     <string name="btnNext">Siguiente</string>
-    <string name="btnCreatedFor">Ajsutado para</string>
+    <string name="btnSelectHour">Ajustar</string>
     <string name="txtDate">dd/MM/yyyy</string>
     <string name="btnDate">Fecha</string>
     <string name="btnHour">Hora</string>
@@ -38,7 +38,7 @@
     <string name="lblAdd">Añadir</string>
     <string name="lblDefaultDateTime">Fecha y hora predeterminados</string>
     <string name="lblDefaultDateTimeText">
-    Puedes elegir no tener recordatorios.\nSi no eliges una fecha, se usará el día siguiente.\nSi no eliges una hora, se usará las 07:00 a. m.
+    Puedes elegir no tener recordatorios.\nSi no eliges una fecha, se usará el día siguiente.\nSi no eliges una hora, se usará a las 07:00 a. m.
     </string>
     <string name="fchNoReminder">Sin aviso</string>
     <string name="fchCompleted">Completadas</string>
@@ -52,11 +52,11 @@
     <string name="btnDeleteTask">Eliminar tarea</string>
     <string name="btnShareTask">Compartir tarea</string>
     <string name="lblNotificationsPermissionsGranted">Notificaciones activadas</string>
-    <string name="lblNotificationsPermissionsNoGranted">Para activar las notificaciones ve a la configuracion de la aplicacion.</string>
-    <string name="lblPermissionDenied">Ve a la configuracion de la aplicacion.</string>
+    <string name="lblNotificationsPermissionsNoGranted">Para activar las notificaciones, ve a la configuración de la aplicación.</string>
+    <string name="lblPermissionDenied">Ve a la configuración de la aplicación.</string>
     <string name="lblGoConfiguration">Ir</string>
     <string name="lblClose">Cerrar</string>
-    <string name="lblTitleEmpty">El nombre no puede estar vacio.</string>
+    <string name="lblTitleEmpty">El nombre no puede estar vacío.</string>
     <string name="lblDateWrong">La fecha debe ser hoy o futura.</string>
     <string name="lblTimeWrong">La hora debe ser una hora futura.</string>
     <string name="lblNoResults">No hay tareas para mostrar.</string>

@@ -2,8 +2,8 @@ package com.devtorres.taskalarm.ui.dialog
 
 import android.annotation.SuppressLint
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -63,7 +63,6 @@ import androidx.compose.ui.window.Dialog
 import com.devtorres.taskalarm.R
 import com.devtorres.taskalarm.data.model.AssigmentTask
 import com.devtorres.taskalarm.data.model.Task
-import com.devtorres.taskalarm.data.model.TaskValidations
 import com.devtorres.taskalarm.data.model.TaskValidationsBoolean
 import com.devtorres.taskalarm.ui.task.TaskViewModel
 import com.devtorres.taskalarm.util.TaskUtils.emptyValidationsState
@@ -342,9 +341,11 @@ fun AddTaskDialog(
                     // END FOR Sin aviso
                 }
 
+                Spacer(modifier = Modifier.size(16.dp))
+
                 HorizontalDivider()
 
-                Spacer(modifier = Modifier.size(32.dp))
+                Spacer(modifier = Modifier.size(16.dp))
 
                 OutlinedTextField(
                     value = titleTask,
@@ -359,7 +360,8 @@ fun AddTaskDialog(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     modifier = Modifier.fillMaxWidth()
                 )
-                if(!validationsState.title) {
+
+                AnimatedVisibility(visible = !validationsState.title) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Start
@@ -372,72 +374,77 @@ fun AddTaskDialog(
                     }
                 }
 
-                if(assigment.date){
-                    Spacer(modifier = Modifier.size(16.dp))
+                AnimatedVisibility(visible = assigment.date) {
+                    Column {
+                        Spacer(modifier = Modifier.size(16.dp))
 
-                    OutlinedTextField(
-                        value = selectedDate,
-                        onValueChange = {  },
-                        readOnly = true,
-                        placeholder = {
-                            Text(
-                                text = stringResource(id = R.string.txtDate),
-                                modifier = Modifier
-                                    .graphicsLayer(alpha = 0.5f)
-                            )
-                        },
-                        trailingIcon = {
-                            IconButton(onClick = { openDatePicker = true }) {
-                                Icon(imageVector = Icons.Filled.DateRange, contentDescription = null)
+                        OutlinedTextField(
+                            value = selectedDate,
+                            onValueChange = {  },
+                            readOnly = true,
+                            placeholder = {
+                                Text(
+                                    text = stringResource(id = R.string.txtDate),
+                                    modifier = Modifier
+                                        .graphicsLayer(alpha = 0.5f)
+                                )
+                            },
+                            trailingIcon = {
+                                IconButton(onClick = { openDatePicker = true }) {
+                                    Icon(imageVector = Icons.Filled.DateRange, contentDescription = null)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        AnimatedVisibility(visible = !validationsState.date) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Start
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.lblDateWrong),
+                                    style = typography.labelSmall,
+                                    color = colorScheme.error
+                                )
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    if(!validationsState.date) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.lblDateWrong),
-                                style = typography.labelSmall,
-                                color = colorScheme.error
-                            )
                         }
                     }
                 }
 
-                if(assigment.hour){
-                    Spacer(modifier = Modifier.size(16.dp))
+                AnimatedVisibility(visible = assigment.hour) {
+                    Column {
+                        Spacer(modifier = Modifier.size(16.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        FilledTonalButton(onClick = { openTimePicker = true }) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            FilledTonalButton(onClick = { openTimePicker = true }) {
+                                Text(
+                                    text = stringResource(id = R.string.btnSelectHour)
+                                )
+                            }
+
                             Text(
-                                text = stringResource(id = R.string.btnCreatedFor)
+                                text = selectedHour,
+                                style = typography.bodyLarge,
+                                fontWeight = FontWeight.W500
                             )
                         }
 
-                        Text(
-                            text = selectedHour,
-                            style = typography.bodyLarge,
-                            fontWeight = FontWeight.W500
-                        )
-                    }
-
-                    if(!validationsState.time) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.lblTimeWrong),
-                                style = typography.labelSmall,
-                                color = colorScheme.error
-                            )
+                        AnimatedVisibility(visible = !validationsState.time) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Start
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.lblTimeWrong),
+                                    style = typography.labelSmall,
+                                    color = colorScheme.error
+                                )
+                            }
                         }
                     }
                 }
