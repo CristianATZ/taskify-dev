@@ -394,11 +394,11 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                 visible = isDeleted,
                 enter = slideInVertically(
                     initialOffsetY = { it }, // Enter from the bottom
-                    animationSpec = tween(durationMillis = 300) // Duration of the slide in
+                    animationSpec = tween(durationMillis = 600) // Duration of the slide in
                 ),
                 exit = slideOutVertically(
                     targetOffsetY = { it }, // Exit to the bottom
-                    animationSpec = tween(durationMillis = 300) // Duration of the slide out
+                    animationSpec = tween(durationMillis = 1000) // Duration of the slide out
                 )
             ) {
                 Column(
