@@ -15,6 +15,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -46,6 +47,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.DoneOutline
 import androidx.compose.material.icons.outlined.FilterList
@@ -76,6 +78,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -103,6 +106,7 @@ import com.devtorres.taskalarm.data.model.TypeFilter
 import com.devtorres.taskalarm.ui.dialog.AboutDialog
 import com.devtorres.taskalarm.ui.theme.doneScheme
 import com.devtorres.taskalarm.util.TaskUtils.emptyTask
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDateTime
@@ -199,7 +203,20 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
     }.sortedByDescending { task -> task.finishDate }
 
     // FOR BOTTOM SHEET
+    var isDeleted by remember {
+        mutableStateOf(false)
+    }
+
+    // Mostrar el mensaje de eliminación durante
+    LaunchedEffect(isDeleted) {
+        if (isDeleted) {
+            delay(2000) // 5 segundos
+            isDeleted = false
+        }
+    }
+
     if(selectedTask.id != -1){
+        val message = stringResource(id = R.string.lblTaskExpired)
         TaskActionsBottomSheet(
             selectedTask = selectedTask,
             onDismiss = {
@@ -212,9 +229,10 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                 selectedTask = emptyTask
             },
             onDelete = {
-                if(selectedTask.reminder) taskViewModel.cancelNotification(context, selectedTask.title, "Acaba de expirar", selectedTask.id)
+                if(selectedTask.reminder) taskViewModel.cancelNotification(context, selectedTask.title, message, selectedTask.id)
                 taskViewModel.deleteTask(task = selectedTask)
                 selectedTask = emptyTask
+                isDeleted = true
             },
             onShare = {
                 taskViewModel.shareTask(selectedTask.title, shareLauncher)
@@ -281,17 +299,10 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
             SnackbarHost(hostState = snackbarHostState)
         }
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = innerPadding.calculateTopPadding())
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = {
-                            selectedTask = emptyTask
-                        }
-                    )
-                }
         ) {
             Column(
                 modifier = Modifier
@@ -377,6 +388,48 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                     }
                 }
                 // END FOR lista de tareas
+            }
+
+            AnimatedVisibility(
+                visible = isDeleted,
+                enter = slideInVertically(
+                    initialOffsetY = { it }, // Enter from the bottom
+                    animationSpec = tween(durationMillis = 300) // Duration of the slide in
+                ),
+                exit = slideOutVertically(
+                    targetOffsetY = { it }, // Exit to the bottom
+                    animationSpec = tween(durationMillis = 300) // Duration of the slide out
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.Bottom
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxSize(0.25f)
+                            .background(colorScheme.error),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.DeleteSweep,
+                            contentDescription = null,
+                            tint = colorScheme.onError,
+                            modifier = Modifier.size(32.dp)
+                        )
+
+                        Spacer(modifier = Modifier.size(8.dp))
+
+                        Text(
+                            text = stringResource(id = R.string.lblTaskEliminated),
+                            style = typography.headlineSmall,
+                            color = colorScheme.onError
+                        )
+                    }
+                }
             }
         }
     }

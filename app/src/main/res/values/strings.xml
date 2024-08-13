@@ -60,4 +60,6 @@
     <string name="lblDateWrong">La fecha debe ser hoy o futura.</string>
     <string name="lblTimeWrong">La hora debe ser una hora futura.</string>
     <string name="lblNoResults">No hay tareas para mostrar.</string>
+    <string name="lblTaskEliminated">Tarea eliminada</string>
+    <string name="lblTaskExpired">Acaba de expirar</string>
 </resources>
