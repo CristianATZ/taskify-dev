@@ -26,6 +26,11 @@ render.experimental.xml
 *.jks
 *.keystore
 
+# Excluir carpetas de construcción
+build/
+*.apk
+*.aab
+
 # Google Services (e.g. APIs or Firebase)
 google-services.json
 
