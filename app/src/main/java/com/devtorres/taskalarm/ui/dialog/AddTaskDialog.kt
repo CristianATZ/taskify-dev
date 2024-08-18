@@ -109,11 +109,11 @@ fun AddTaskDialog(
         mutableStateOf(false)
     }
 
-    val datePickerState = rememberDatePickerState(
+    var datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
     )
 
-    val timePickerState = rememberTimePickerState(
+    var timePickerState = rememberTimePickerState(
         initialHour = 7,
         initialMinute = 0,
         is24Hour = false
@@ -300,6 +300,7 @@ fun AddTaskDialog(
                     FilterChip(
                         selected = assigment.date,
                         onClick = {
+                            selectedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
                             if(assigment.date){
                                 updateAssigments(date = false, hour = assigment.hour, noreminder = !assigment.hour)
                             } else {
@@ -316,6 +317,12 @@ fun AddTaskDialog(
                     FilterChip(
                         selected = assigment.hour,
                         onClick = {
+                            selectedHour = "07:00 a.m."
+                            timePickerState = TimePickerState(
+                                initialHour = 7,
+                                initialMinute = 0,
+                                is24Hour = false
+                            )
                             if(assigment.hour){
                                 updateAssigments(date = assigment.date, hour = false, noreminder = !assigment.date)
                             } else {
