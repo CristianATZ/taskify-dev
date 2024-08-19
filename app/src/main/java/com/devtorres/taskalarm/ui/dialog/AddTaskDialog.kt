@@ -174,8 +174,7 @@ fun AddTaskDialog(
             else -> LocalDate.now()
         }
 
-        // convertir el localdate, hora y minuto para generar un calendar
-        // se usara para el alarmManager
+        // obtener la fecha seleccionada
         calendar = Calendar.getInstance().apply {
             timeInMillis = localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
             set(Calendar.HOUR_OF_DAY, localTime.hour)
@@ -183,6 +182,14 @@ fun AddTaskDialog(
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
+
+        val expiredCalendar = calendar.clone() as Calendar
+
+        val precalendar = calendar.apply {
+            add(Calendar.HOUR_OF_DAY, -1)
+        }
+
+
 
         val isCurrentDate = localDate == LocalDate.now()
         val isPastDate = localDate < LocalDate.now()
@@ -208,9 +215,12 @@ fun AddTaskDialog(
             // llamar la implementacion de agregar tarea del viewmodel
             taskViewModel.addtask(
                 task = currentTask,
-                content = "Tarea agregada",
+                content = context.getString(R.string.lblTaskAdd),
                 context = context,
-                calendar = calendar
+                expiredCalendar = expiredCalendar,
+                preCalendar = precalendar,
+                message = context.getString(R.string.lblTaskExpired),
+                preMessage = context.getString(R.string.lblPreTaskExpired),
             )
 
             // limpiar la caja de texto

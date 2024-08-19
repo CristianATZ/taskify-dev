@@ -8,7 +8,10 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.viewModelScope
 import com.devtorres.taskalarm.R
+import kotlinx.coroutines.launch
+import java.util.Calendar
 
 object NotificationHelper {
     private const val TASK_CHANNEL_ID = "task_notifications"
@@ -66,5 +69,39 @@ object NotificationHelper {
         with(NotificationManagerCompat.from(context)) {
             notify(2, builder.build())
         }
+    }
+
+    fun scheduleInstantTaskNotification(
+        context: Context,
+        title: String,
+        content: String,
+        requestCode: String
+    ) {
+        WorkScheduler.scheduleInstantNotification(context, title, content, requestCode)
+    }
+
+    fun scheduleExactNotification(
+        context: Context,
+        title: String,
+        content: String,
+        calendar: Calendar,
+        requestCode: Int
+    ) {
+        AlarmScheduler.scheduleAlarmOnExactDate(
+            context = context,
+            title = title,
+            content = content,
+            calendar = calendar,
+            requestCode = requestCode
+        )
+    }
+
+    fun cancelNotification(
+        context: Context,
+        title: String,
+        content: String,
+        requestCode: Int
+    ) {
+        AlarmScheduler.cancelAlarm(context, title, content, requestCode)
     }
 }

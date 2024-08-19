@@ -62,4 +62,7 @@
     <string name="lblNoResults">No hay tareas para mostrar.</string>
     <string name="lblTaskEliminated">Tarea eliminada</string>
     <string name="lblTaskExpired">Acaba de expirar</string>
+    <string name="lblPreTaskExpired">Falta 1 hora para que expire</string>
+    <string name="lblTaskAdd">Tarea agregada</string>
+
 </resources>

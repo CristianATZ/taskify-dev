@@ -46,7 +46,6 @@ import com.devtorres.taskalarm.ui.navigation.Destinations
 import com.devtorres.taskalarm.ui.navigation.NavGraph
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainScreen(
     navHostController: NavHostController,
@@ -70,7 +69,6 @@ fun MainScreen(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun BottomBarCustom(
     navHostController: NavHostController,
@@ -170,7 +168,6 @@ fun BottomBarCustom(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FloatingActionApp(taskViewModel: TaskViewModel) {
     var openDialog by remember {
@@ -188,13 +185,11 @@ fun FloatingActionApp(taskViewModel: TaskViewModel) {
         onClick = { openDialog = !openDialog },
         elevation = FloatingActionButtonDefaults.elevation(
             defaultElevation = 2.dp
-        ),
-        modifier = Modifier.fillMaxSize()
+        )
     ) {
         Icon(
             imageVector = Icons.Filled.Add,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(0.5f)
+            contentDescription = null
         )
     }
 }

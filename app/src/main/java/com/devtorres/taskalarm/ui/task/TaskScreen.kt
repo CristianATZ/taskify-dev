@@ -14,7 +14,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -23,13 +22,11 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.with
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -89,7 +86,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -114,10 +110,9 @@ import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
-    ExperimentalAnimationApi::class
+@OptIn(
+    ExperimentalFoundationApi::class
 )
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TaskScreen(taskViewModel: TaskViewModel) {
     val context = LocalContext.current
@@ -216,7 +211,8 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
     }
 
     if(selectedTask.id != -1){
-        val message = stringResource(id = R.string.lblTaskExpired)
+        val expiredMessage = stringResource(id = R.string.lblTaskExpired)
+        val preMessage = stringResource(id = R.string.lblPreTaskExpired)
         TaskActionsBottomSheet(
             selectedTask = selectedTask,
             onDismiss = {
@@ -229,8 +225,7 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                 selectedTask = emptyTask
             },
             onDelete = {
-                if(selectedTask.reminder) taskViewModel.cancelNotification(context, selectedTask.title, message, selectedTask.id)
-                taskViewModel.deleteTask(task = selectedTask)
+                taskViewModel.deleteTask(task = selectedTask, context = context, message = expiredMessage, preMessage = preMessage)
                 selectedTask = emptyTask
                 isDeleted = true
             },

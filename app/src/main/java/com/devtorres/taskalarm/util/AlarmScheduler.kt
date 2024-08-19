@@ -12,6 +12,9 @@ import kotlin.math.absoluteValue
 
 object AlarmScheduler {
 
+    /**
+     * Obtener un Intent unico para las alarmas
+     */
     private fun getPendingIntent(context: Context, requestCode: Int, title: String, content: String): PendingIntent {
         val intent = Intent(context, NotificationReceiver::class.java).apply {
             putExtra("title", title)
