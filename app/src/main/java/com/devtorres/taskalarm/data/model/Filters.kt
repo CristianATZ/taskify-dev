@@ -1,6 +1,6 @@
 package com.devtorres.taskalarm.data.model
 
-enum class TypeFilter { ALL, REMINDER, NOREMINDER }
+enum class TypeFilter { ALL, REMINDER, NOREMINDER, EXPIRED }
 
 enum class StatusFilter { NONE, COMPLETED, UNCOMPLETED }
 

@@ -11,5 +11,6 @@ data class Task(
     val title: String,
     var isCompleted: Boolean,
     val reminder: Boolean,
+    val expired: Boolean,
     val finishDate: LocalDateTime
 )
