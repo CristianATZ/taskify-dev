@@ -2,7 +2,6 @@ package com.devtorres.taskalarm.ui.task
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.lifecycle.ViewModel
@@ -48,8 +47,6 @@ class TaskViewModel(
         viewModelScope.launch {
             val id = taskRepository.insertTask(task)
 
-            Log.d("REQUESTCODE", "view ${id.toInt()}")
-
             NotificationHelper.scheduleInstantTaskNotification(
                 context = context,
                 title = task.title,
@@ -61,7 +58,7 @@ class TaskViewModel(
                 NotificationHelper.scheduleExactNotification(
                     context = context,
                     title = task.title,
-                    content = "Acaba de expirar",
+                    content = message,
                     calendar = expiredCalendar,
                     requestCode = "$id".toInt()
                 )
@@ -69,7 +66,7 @@ class TaskViewModel(
                 NotificationHelper.scheduleExactNotification(
                     context = context,
                     title = task.title,
-                    content = "Falta 1 hora para que expire",
+                    content = preMessage,
                     calendar = preCalendar,
                     requestCode = "$id$id".toInt()
                 )

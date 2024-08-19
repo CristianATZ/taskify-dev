@@ -4,14 +4,12 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -256,9 +254,8 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
     PermissionDialog(
         showMessage = { message, messageAction, close ->
             scope.launch {
-                var resultActionSnack: SnackbarResult? = null
 
-                resultActionSnack = if(close){
+                val resultActionSnack: SnackbarResult = if(close){
                     snackbarHostState.showSnackbar(
                         message = message,
                         duration = SnackbarDuration.Short,
@@ -620,7 +617,6 @@ fun FilterDateRow(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskActionsBottomSheet(
@@ -790,7 +786,6 @@ fun TopBarApp(
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TaskItem(
     modifier: Modifier = Modifier,

@@ -7,7 +7,6 @@ import com.devtorres.taskalarm.data.model.TaskValidationsBoolean
 import java.time.LocalDateTime
 
 object TaskUtils {
-    @RequiresApi(Build.VERSION_CODES.O)
     val emptyTask = Task(
         id = -1,
         title = "",

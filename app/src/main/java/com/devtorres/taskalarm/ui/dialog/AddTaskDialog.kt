@@ -1,8 +1,6 @@
 package com.devtorres.taskalarm.ui.dialog
 
 import android.annotation.SuppressLint
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -79,7 +77,6 @@ import java.util.concurrent.TimeUnit
 
 @SuppressLint("SimpleDateFormat", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AddTaskDialog(
     taskViewModel: TaskViewModel,
@@ -109,7 +106,7 @@ fun AddTaskDialog(
         mutableStateOf(false)
     }
 
-    var datePickerState = rememberDatePickerState(
+    val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
     )
 
@@ -524,7 +521,6 @@ fun getFormattedAnnotatedString(): AnnotatedString {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("SimpleDateFormat")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -558,7 +554,6 @@ fun DatePickerDialog(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimePickerDialog(

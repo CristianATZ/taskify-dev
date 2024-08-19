@@ -3,12 +3,10 @@ package com.devtorres.taskalarm.ui.task
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
@@ -16,7 +14,6 @@ import com.devtorres.taskalarm.R
 
 @Composable
 fun PermissionDialog(
-    modifier: Modifier = Modifier,
     showMessage: (String, String, Boolean) -> Unit
 ) {
     val context = LocalContext.current

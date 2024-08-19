@@ -17,7 +17,6 @@ object NotificationHelper {
     private const val TASK_CHANNEL_ID = "task_notifications"
     private const val UPDATE_CHANNEL_ID = "update_notifications"
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun createNotificationChannels(context: Context){
         // canal para tareas
         val taskChannelName = "Notificaciones de Tareas"

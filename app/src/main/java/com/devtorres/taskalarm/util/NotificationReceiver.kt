@@ -4,17 +4,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import androidx.compose.ui.platform.LocalContext
 import androidx.work.impl.utils.ForceStopRunnable.BroadcastReceiver
-import com.devtorres.taskalarm.MyApp
-import com.devtorres.taskalarm.data.database.AppDataBase
-import com.devtorres.taskalarm.data.repository.TaskRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @SuppressLint("RestrictedApi")
-class NotificationReceiver(): BroadcastReceiver() {
+class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         val title = intent?.getStringExtra("title") ?: "Notificación"
         val content = intent?.getStringExtra("content") ?: "Contenido de la notificación."
