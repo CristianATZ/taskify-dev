@@ -1,4 +1,4 @@
-package com.devtorres.taskalarm.ui.task
+package com.devtorres.taskalarm.ui.viewmodel
 
 import android.content.Context
 import android.content.Intent
@@ -76,9 +76,14 @@ class TaskViewModel(
         }
     }
 
-    fun updateTask(task: Task) {
+    fun updateTask(task: Task, context: Context, message: String, preMessage: String) {
         viewModelScope.launch {
             taskRepository.updateTask(task)
+
+            if(task.reminder) {
+                NotificationHelper.cancelNotification(context, task.title, message, "${task.id}".toInt())
+                NotificationHelper.cancelNotification(context, task.title, preMessage, "${task.id}${task.id}".toInt())
+            }
 
             getAllTask()
         }

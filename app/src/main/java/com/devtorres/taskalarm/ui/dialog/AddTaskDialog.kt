@@ -16,10 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
@@ -32,7 +28,6 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Text
-import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
@@ -55,6 +50,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -62,18 +58,17 @@ import com.devtorres.taskalarm.R
 import com.devtorres.taskalarm.data.model.AssigmentTask
 import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.data.model.TaskValidationsBoolean
-import com.devtorres.taskalarm.ui.task.TaskViewModel
+import com.devtorres.taskalarm.ui.components.DatePickerDialog
+import com.devtorres.taskalarm.ui.components.TimePickerDialog
+import com.devtorres.taskalarm.ui.viewmodel.TaskViewModel
 import com.devtorres.taskalarm.util.TaskUtils.emptyValidationsState
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
-import java.util.Date
-import java.util.concurrent.TimeUnit
 
 @SuppressLint("SimpleDateFormat", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -186,8 +181,6 @@ fun AddTaskDialog(
             add(Calendar.HOUR_OF_DAY, -1)
         }
 
-
-
         val isCurrentDate = localDate == LocalDate.now()
         val isPastDate = localDate < LocalDate.now()
         val isTimeValid = if (assigment.date && assigment.hour) {
@@ -206,7 +199,8 @@ fun AddTaskDialog(
                 title = titleTask,
                 isCompleted = false,
                 reminder = assigment.date || assigment.hour,
-                finishDate = localDate.atTime(localTime.hour, localTime.minute)
+                finishDate = localDate.atTime(localTime.hour, localTime.minute),
+                expired = false
             )
 
             // llamar la implementacion de agregar tarea del viewmodel
@@ -353,6 +347,10 @@ fun AddTaskDialog(
                         }
                     )
                     // END FOR Sin aviso
+                }
+
+                AnimatedVisibility(visible = !assigment.noreminder) {
+                    Text(text = stringResource(id = R.string.lblPreTaskWarn), textAlign = TextAlign.Center)
                 }
 
                 Spacer(modifier = Modifier.size(16.dp))
@@ -517,76 +515,6 @@ fun getFormattedAnnotatedString(): AnnotatedString {
         // Añadir el texto restante después del último marcador
         if (startIndex < text.length) {
             append(text.substring(startIndex))
-        }
-    }
-}
-
-@SuppressLint("SimpleDateFormat")
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DatePickerDialog(
-    datePickerState: DatePickerState,
-    closeDialog: () -> Unit,
-    selectedDate: (String) -> Unit,
-) {
-    DatePickerDialog(
-        onDismissRequest = { closeDialog() },
-        confirmButton = {
-            Button(
-                onClick = {
-                    datePickerState.selectedDateMillis?.let {
-                        val formatter = SimpleDateFormat("dd/MM/yyyy")
-                        formatter.format(Date(it+TimeUnit.DAYS.toMillis(1L)))
-                    }?.let {
-                        selectedDate(it)
-                    }
-
-                    closeDialog()
-                }
-            ) {
-                Text(
-                    text = stringResource(id = R.string.btnAccept)
-                )
-            }
-        }
-    ) {
-        DatePicker(state = datePickerState)
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TimePickerDialog(
-    timePickerState: TimePickerState,
-    closeDialog: () -> Unit,
-    selectedHour: (String) -> Unit
-) {
-    Dialog(onDismissRequest = { closeDialog() }) {
-        Card {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                TimePicker(state = timePickerState)
-
-                Button(
-                    onClick = {
-                        selectedHour(
-                            LocalTime.of(timePickerState.hour,timePickerState.minute).format(
-                                DateTimeFormatter.ofPattern("hh:mm a"))
-                        )
-
-                        closeDialog()
-                    },
-                    shape = RoundedCornerShape(4.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(50.dp)
-                ) {
-                    Text(text = stringResource(id = R.string.btnAccept))
-                }
-            }
         }
     }
 }

@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.devtorres.taskalarm.R
+import com.devtorres.taskalarm.ui.viewmodel.SettingsViewModel
 
 @Composable
 fun SettingsScreen(

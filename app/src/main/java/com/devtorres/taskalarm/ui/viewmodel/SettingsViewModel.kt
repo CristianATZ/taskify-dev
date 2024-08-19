@@ -1,4 +1,4 @@
-package com.devtorres.taskalarm.ui.task
+package com.devtorres.taskalarm.ui.viewmodel
 
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel

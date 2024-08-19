@@ -41,6 +41,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.devtorres.taskalarm.ui.dialog.AddTaskDialog
 import com.devtorres.taskalarm.ui.navigation.Destinations
 import com.devtorres.taskalarm.ui.navigation.NavGraph
+import com.devtorres.taskalarm.ui.viewmodel.SettingsViewModel
+import com.devtorres.taskalarm.ui.viewmodel.TaskViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable

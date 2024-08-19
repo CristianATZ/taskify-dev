@@ -5,7 +5,7 @@
     <string name="btnAccept">Aceptar</string>
     <string name="lblTareas">Tareas</string>
     <string name="lblTaskUncompleted">Tareas restantes</string>
-    <string name="lblTaskCompleted">Tareas completadas</string>
+    <string name="lblTaskCompleted">Tarea completada</string>
     <string name="lblTask">Tarea</string>
     <string name="lblPending">Pendientes</string>
     <string name="infoApplication">Información</string>
@@ -64,5 +64,7 @@
     <string name="lblTaskExpired">Acaba de expirar</string>
     <string name="lblPreTaskExpired">Falta 1 hora para que expire</string>
     <string name="lblTaskAdd">Tarea agregada</string>
+    <string name="lblPreTaskWarn">Se notificara 1 hora antes de expirar la tarea.</string>
+    <string name="fchExpired">Expiradas</string>
 
 </resources>

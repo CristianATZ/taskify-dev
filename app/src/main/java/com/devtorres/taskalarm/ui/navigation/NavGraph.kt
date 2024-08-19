@@ -1,15 +1,13 @@
 package com.devtorres.taskalarm.ui.navigation
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.devtorres.taskalarm.ui.task.TaskScreen
-import com.devtorres.taskalarm.ui.task.TaskViewModel
+import com.devtorres.taskalarm.ui.viewmodel.TaskViewModel
 import com.devtorres.taskalarm.ui.task.SettingsScreen
-import com.devtorres.taskalarm.ui.task.SettingsViewModel
+import com.devtorres.taskalarm.ui.viewmodel.SettingsViewModel
 
 @Composable
 fun NavGraph(

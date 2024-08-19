@@ -1,4 +1,4 @@
-package com.devtorres.taskalarm.ui.task
+package com.devtorres.taskalarm.ui.components
 
 import android.content.BroadcastReceiver
 import android.content.Context

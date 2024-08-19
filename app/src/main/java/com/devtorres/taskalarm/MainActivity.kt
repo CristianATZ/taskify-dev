@@ -10,10 +10,10 @@ import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.devtorres.taskalarm.ui.task.MainScreen
-import com.devtorres.taskalarm.ui.task.SettingsViewModel
-import com.devtorres.taskalarm.ui.task.SettingsViewModelFactory
-import com.devtorres.taskalarm.ui.task.TaskViewModel
-import com.devtorres.taskalarm.ui.task.TaskViewModelFactory
+import com.devtorres.taskalarm.ui.viewmodel.SettingsViewModel
+import com.devtorres.taskalarm.ui.viewmodel.SettingsViewModelFactory
+import com.devtorres.taskalarm.ui.viewmodel.TaskViewModel
+import com.devtorres.taskalarm.ui.viewmodel.TaskViewModelFactory
 import com.devtorres.taskalarm.ui.theme.TaskAlarmTheme
 import com.devtorres.taskalarm.util.NotificationHelper
 
