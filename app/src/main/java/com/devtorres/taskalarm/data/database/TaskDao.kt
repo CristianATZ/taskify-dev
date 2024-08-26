@@ -17,6 +17,9 @@ interface TaskDao {
     @Update
     suspend fun updateTask(task: Task)
 
+    @Update
+    suspend fun completeTask(task: Task)
+
     @Query("UPDATE tasks SET expired = 1 WHERE id = :taskId")
     suspend fun udpateTaskById(taskId: Int)
 

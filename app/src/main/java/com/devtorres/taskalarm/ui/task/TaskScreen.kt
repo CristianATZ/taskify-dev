@@ -74,6 +74,7 @@ import com.devtorres.taskalarm.ui.components.TaskActionsBottomSheet
 import com.devtorres.taskalarm.ui.components.TaskItem
 import com.devtorres.taskalarm.ui.components.shareIntentResult
 import com.devtorres.taskalarm.ui.dialog.AboutDialog
+import com.devtorres.taskalarm.ui.dialog.addTaskDialog
 import com.devtorres.taskalarm.ui.theme.doneScheme
 import com.devtorres.taskalarm.ui.viewmodel.TaskViewModel
 import com.devtorres.taskalarm.util.TaskUtils.emptyTask
@@ -195,6 +196,21 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
         }
     }
 
+    var openDialog by remember {
+        mutableStateOf(false)
+    }
+
+    if(openDialog){
+        addTaskDialog(
+            taskViewModel = taskViewModel,
+            task = selectedTask,
+            closeDialog = {
+                openDialog = false
+                selectedTask = emptyTask
+            }
+        )
+    }
+
     if(selectedTask.id != -1){
         val expiredMessage = stringResource(id = R.string.lblTaskExpired)
         val preMessage = stringResource(id = R.string.lblPreTaskExpired)
@@ -203,8 +219,11 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
             onDismiss = {
                 selectedTask = emptyTask
             },
+            onUpdate = {
+                openDialog = true
+            },
             onComplete = {
-                taskViewModel.updateTask(
+                taskViewModel.completeTask(
                     task = selectedTask.copy(isCompleted = true),
                     context = context,
                     message = expiredMessage,

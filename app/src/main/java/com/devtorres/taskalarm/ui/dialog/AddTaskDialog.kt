@@ -1,6 +1,8 @@
 package com.devtorres.taskalarm.ui.dialog
 
 import android.annotation.SuppressLint
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -73,8 +75,9 @@ import java.util.Calendar
 @SuppressLint("SimpleDateFormat", "NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTaskDialog(
+fun addTaskDialog(
     taskViewModel: TaskViewModel,
+    task: Task? = null,
     closeDialog: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -82,7 +85,9 @@ fun AddTaskDialog(
 
     // FOR propiedades de la tarea
     var titleTask by remember {
-        mutableStateOf("")
+        mutableStateOf(
+            task?.title ?: ""
+        )
     }
     // END FOR propiedades de la tarea
 
@@ -102,12 +107,14 @@ fun AddTaskDialog(
     }
 
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        initialSelectedDateMillis =
+            task?.finishDate?.toLocalDate()?.atStartOfDay()?.atZone(ZoneId.systemDefault())?.toInstant()?.toEpochMilli() ?:
+            LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
     )
 
     var timePickerState = rememberTimePickerState(
-        initialHour = 7,
-        initialMinute = 0,
+        initialHour = task?.finishDate?.toLocalTime()?.hour ?: 7,
+        initialMinute = task?.finishDate?.toLocalTime()?.minute ?: 0,
         is24Hour = false
     )
     // END FOR dialog pickers
@@ -115,11 +122,22 @@ fun AddTaskDialog(
     // FOR fecha y hora
     var selectedDate by remember {
         mutableStateOf(
+            task?.finishDate?.toLocalDate()?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?:
             LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
         )
     }
     var selectedHour by remember {
-        mutableStateOf("07:00 a. m.")
+        mutableStateOf(
+            if(task?.finishDate == null) {
+                LocalTime.of(timePickerState.hour,timePickerState.minute).format(
+                    DateTimeFormatter.ofPattern("hh:mm a"))
+            } else {
+                task.finishDate.let {
+                    LocalTime.of(it.hour,it.minute).format(
+                        DateTimeFormatter.ofPattern("hh:mm a"))
+                }
+            }
+        )
     }
     // END FOR fecha y hora
 
@@ -141,7 +159,13 @@ fun AddTaskDialog(
 
     // FOR asignaciones
     var assigment by remember {
-        mutableStateOf(AssigmentTask())
+        mutableStateOf(
+            if(task == null){
+                AssigmentTask()
+            } else {
+                AssigmentTask(date = true, hour = true, noreminder = false)
+            }
+        )
     }
 
     fun updateAssigments(date: Boolean, hour: Boolean, noreminder: Boolean) {
@@ -196,6 +220,7 @@ fun AddTaskDialog(
         if(validationsState.isValid()){
             // crear una tarea para guardarla
             val currentTask = Task(
+                id = task?.id ?: 0,
                 title = titleTask,
                 isCompleted = false,
                 reminder = assigment.date || assigment.hour,
@@ -204,15 +229,27 @@ fun AddTaskDialog(
             )
 
             // llamar la implementacion de agregar tarea del viewmodel
-            taskViewModel.addtask(
-                task = currentTask,
-                content = context.getString(R.string.lblTaskAdd),
-                context = context,
-                expiredCalendar = expiredCalendar,
-                preCalendar = precalendar,
-                message = context.getString(R.string.lblTaskExpired),
-                preMessage = context.getString(R.string.lblPreTaskExpired),
-            )
+            if(task == null){
+                taskViewModel.addtask(
+                    task = currentTask,
+                    content = context.getString(R.string.lblTaskAdd),
+                    context = context,
+                    expiredCalendar = expiredCalendar,
+                    preCalendar = precalendar,
+                    message = context.getString(R.string.lblTaskExpired),
+                    preMessage = context.getString(R.string.lblPreTaskExpired),
+                )
+            } else {
+                taskViewModel.updateTask(
+                    task = currentTask,
+                    content = context.getString(R.string.lblUpdatedTask),
+                    context = context,
+                    expiredCalendar = expiredCalendar,
+                    preCalendar = precalendar,
+                    message = context.getString(R.string.lblTaskExpired),
+                    preMessage = context.getString(R.string.lblPreTaskExpired),
+                )
+            }
 
             // limpiar la caja de texto
             titleTask = ""

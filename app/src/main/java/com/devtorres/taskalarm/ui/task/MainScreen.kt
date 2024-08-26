@@ -38,7 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.devtorres.taskalarm.ui.dialog.AddTaskDialog
+import com.devtorres.taskalarm.ui.dialog.addTaskDialog
 import com.devtorres.taskalarm.ui.navigation.Destinations
 import com.devtorres.taskalarm.ui.navigation.NavGraph
 import com.devtorres.taskalarm.ui.viewmodel.SettingsViewModel
@@ -174,7 +174,7 @@ fun FloatingActionApp(taskViewModel: TaskViewModel) {
     }
 
     if(openDialog){
-        AddTaskDialog(
+        addTaskDialog(
             taskViewModel = taskViewModel,
             closeDialog = { openDialog = false }
         )

@@ -6,6 +6,7 @@ import com.devtorres.taskalarm.data.model.Task
 interface TaskRepository {
     suspend fun insertTask(task: Task): Long
     suspend fun updateTask(task: Task)
+    suspend fun completeTask(task: Task)
     suspend fun updateTaskById(taskId: Int)
     suspend fun deleteTask(task: Task)
     suspend fun getAllTasks(): List<Task>
@@ -22,6 +23,10 @@ class TaskRepositoryImpl(
     // funcion para actualizar tarea
     override suspend fun updateTask(task: Task) {
         taskDao.updateTask(task)
+    }
+
+    override suspend fun completeTask(task: Task) {
+        taskDao.completeTask(task)
     }
 
     // funcion para actualizar tarea en base al id

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Done
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
@@ -34,6 +35,7 @@ import com.devtorres.taskalarm.data.model.Task
 fun TaskActionsBottomSheet(
     selectedTask: Task,
     onDismiss: () -> Unit,
+    onUpdate: () -> Unit,
     onComplete: () -> Unit = {},
     onShare: () -> Unit = {},
     onDelete: () -> Unit = {}
@@ -55,7 +57,19 @@ fun TaskActionsBottomSheet(
 
             Spacer(modifier = Modifier.size(32.dp))
 
+            ActionButtonBottomSheet(
+                onClick = onUpdate,
+                icon = Icons.Outlined.Edit,
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = colorScheme.secondary,
+                    contentColor = colorScheme.onSecondary
+                ),
+                textResId = R.string.btnUpdateTask
+            )
+
             if(!selectedTask.isCompleted && selectedTask.reminder){
+                Spacer(modifier = Modifier.size(16.dp))
+
                 ActionButtonBottomSheet(
                     onClick = onComplete,
                     icon = Icons.Outlined.Done,

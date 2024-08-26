@@ -2,6 +2,7 @@ package com.devtorres.taskalarm.ui.viewmodel
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.lifecycle.ViewModel
@@ -76,9 +77,47 @@ class TaskViewModel(
         }
     }
 
-    fun updateTask(task: Task, context: Context, message: String, preMessage: String) {
+    fun updateTask(task: Task, context: Context, content: String, expiredCalendar: Calendar, preCalendar: Calendar, message: String, preMessage: String) {
         viewModelScope.launch {
             taskRepository.updateTask(task)
+
+            NotificationHelper.scheduleInstantTaskNotification(
+                context = context,
+                title = task.title,
+                content = content,
+                requestCode = task.id.toString()
+            )
+
+            if(!task.reminder) {
+                NotificationHelper.cancelNotification(context, task.title, message, "${task.id}".toInt())
+                NotificationHelper.cancelNotification(context, task.title, preMessage, "${task.id}${task.id}".toInt())
+            }
+
+            if(task.reminder) {
+                NotificationHelper.scheduleExactNotification(
+                    context = context,
+                    title = task.title,
+                    content = message,
+                    calendar = expiredCalendar,
+                    requestCode = "${task.id}".toInt()
+                )
+
+                NotificationHelper.scheduleExactNotification(
+                    context = context,
+                    title = task.title,
+                    content = preMessage,
+                    calendar = preCalendar,
+                    requestCode = "${task.id}${task.id}".toInt()
+                )
+            }
+
+            getAllTask()
+        }
+    }
+
+    fun completeTask(task: Task, context: Context, message: String, preMessage: String) {
+        viewModelScope.launch {
+            taskRepository.completeTask(task)
 
             if(task.reminder) {
                 NotificationHelper.cancelNotification(context, task.title, message, "${task.id}".toInt())

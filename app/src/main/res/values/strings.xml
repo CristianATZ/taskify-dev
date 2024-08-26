@@ -66,5 +66,7 @@
     <string name="lblTaskAdd">Tarea agregada</string>
     <string name="lblPreTaskWarn">Se notificara 1 hora antes de expirar la tarea.</string>
     <string name="fchExpired">Expiradas</string>
+    <string name="btnUpdateTask">Actualizar tarea</string>
+    <string name="lblUpdatedTask">Tarea actualizada</string>
 
 </resources>
