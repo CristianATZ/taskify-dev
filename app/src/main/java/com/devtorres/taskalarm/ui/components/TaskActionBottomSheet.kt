@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,6 +34,7 @@ import com.devtorres.taskalarm.data.model.Task
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskActionsBottomSheet(
+    sheetState: SheetState,
     selectedTask: Task,
     onDismiss: () -> Unit,
     onUpdate: () -> Unit,
@@ -42,6 +44,7 @@ fun TaskActionsBottomSheet(
 ) {
     ModalBottomSheet(
         onDismissRequest = { onDismiss() },
+        sheetState = sheetState,
         properties = ModalBottomSheetProperties(
             isFocusable = true,
             securePolicy = SecureFlagPolicy.SecureOn,
@@ -49,7 +52,7 @@ fun TaskActionsBottomSheet(
         )
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()  ,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 

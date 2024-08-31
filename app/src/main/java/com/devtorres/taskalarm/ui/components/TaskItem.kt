@@ -9,14 +9,22 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cancel
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.DoneOutline
 import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -26,9 +34,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
+import com.devtorres.taskalarm.R
+import com.devtorres.taskalarm.data.model.SubTask
 import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.ui.theme.doneScheme
 import com.devtorres.taskalarm.util.TaskUtils.emptyTask
@@ -40,6 +52,7 @@ fun TaskItem(
     modifier: Modifier = Modifier,
     task: Task,
     selectedTask: Task = emptyTask,
+    onChangeSubTask: (List<SubTask>) -> Unit = {}
 ) {
     val localDate = task.finishDate.toLocalDate()
     val localTime = task.finishDate.toLocalTime()
@@ -101,6 +114,40 @@ fun TaskItem(
                         text = task.title,
                         style = typography.labelMedium
                     )
+                    // lista de subtareas
+                    Column(
+                        modifier = Modifier
+                            .heightIn(max = 300.dp)
+                            .verticalScroll(
+                                rememberScrollState()
+                            )
+                    ) {
+                        task.subtasks.forEachIndexed { index, sub ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = sub.completed,
+                                    onCheckedChange = {
+                                        if(!task.expired) {
+                                            // Crea una copia mutable de la lista de subtareas
+                                            val updatedSubtasks = task.subtasks.toMutableList().apply {
+                                                // Actualiza el elemento en la posición del índice
+                                                this[index] = sub.copy(completed = it)
+                                            }
+                                            // Notifica al ViewModel para actualizar la base de datos
+                                            onChangeSubTask(updatedSubtasks)
+                                        }
+                                    }
+                                )
+                                Spacer(modifier = Modifier.size(8.dp))
+                                Text(
+                                    text = sub.title,
+                                    style = typography.labelMedium
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

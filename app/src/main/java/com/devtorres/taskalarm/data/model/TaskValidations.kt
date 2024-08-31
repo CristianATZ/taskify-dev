@@ -7,10 +7,11 @@ import java.time.LocalTime
 data class TaskValidationsBoolean(
     var title: Boolean = true,
     var date: Boolean = true,
-    var time: Boolean = true
+    var time: Boolean = true,
+    var subtask: Boolean = true
 ) {
     fun isValid(): Boolean {
-        return title && date && time
+        return title && date && time && subtask
     }
 
     fun isNoAssigment(title: String): Boolean {

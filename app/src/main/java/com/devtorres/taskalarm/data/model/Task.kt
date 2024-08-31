@@ -9,6 +9,7 @@ data class Task(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val title: String,
+    var subtasks: List<SubTask> = emptyList(),
     var isCompleted: Boolean,
     val reminder: Boolean,
     val expired: Boolean,

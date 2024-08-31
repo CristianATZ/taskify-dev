@@ -68,5 +68,18 @@
     <string name="fchExpired">Expiradas</string>
     <string name="btnUpdateTask">Actualizar tarea</string>
     <string name="lblUpdatedTask">Tarea actualizada</string>
+    <string name="iconSubTaskCompleted">Icono de tarea completada</string>
+    <string name="iconSubTaskUncompleted">Icono de tarea no completada</string>
+    <string name="lblTaskName">Nombre</string>
+    <string name="lblDate">Fecha</string>
+    <string name="iconClock">Icono de eleccion de hora</string>
+    <string name="lblAddSubTask">Subtareas</string>
+    <string name="lblSubTaskName">Nombre</string>
+    <string name="txtSubTaskName">Tarea secundaria</string>
+    <string name="iconAddSubTask">Icono de agregar sub tarea</string>
+    <string name="btnDeleteSubTask">Cancelar subtareas</string>
+    <string name="iconDeleteSubTask">Icono para borrar la subtarea</string>
+    <string name="lblSubTask">Tareas secundarias</string>
+    <string name="lblSubTaskWrong">Debes agregar al menos una sub tarea</string>
 
 </resources>

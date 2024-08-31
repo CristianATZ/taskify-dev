@@ -44,6 +44,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -85,7 +86,7 @@ import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
 
 @OptIn(
-    ExperimentalFoundationApi::class
+    ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class
 )
 @Composable
 fun TaskScreen(taskViewModel: TaskViewModel) {
@@ -212,9 +213,13 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
     }
 
     if(selectedTask.id != -1){
+        val sheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true
+        )
         val expiredMessage = stringResource(id = R.string.lblTaskExpired)
         val preMessage = stringResource(id = R.string.lblPreTaskExpired)
         TaskActionsBottomSheet(
+            sheetState = sheetState,
             selectedTask = selectedTask,
             onDismiss = {
                 selectedTask = emptyTask
@@ -383,7 +388,10 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                                             onLongClick = {
                                                 selectedTask = task
                                             }
-                                        )
+                                        ),
+                                    onChangeSubTask = {
+                                        taskViewModel.updateSubTask(task.id, it)
+                                    }
                                 )
                             }
                         }

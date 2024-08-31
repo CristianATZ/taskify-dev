@@ -1,25 +1,30 @@
 package com.devtorres.taskalarm.ui.dialog
 
 import android.annotation.SuppressLint
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Done
+import androidx.compose.material.icons.outlined.MoreTime
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -28,6 +33,7 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimePickerState
@@ -38,6 +44,7 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -58,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.devtorres.taskalarm.R
 import com.devtorres.taskalarm.data.model.AssigmentTask
+import com.devtorres.taskalarm.data.model.SubTask
 import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.data.model.TaskValidationsBoolean
 import com.devtorres.taskalarm.ui.components.DatePickerDialog
@@ -72,8 +80,8 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 
-@SuppressLint("SimpleDateFormat", "NewApi")
-@OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("SimpleDateFormat", "NewApi", "MutableCollectionMutableState")
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun addTaskDialog(
     taskViewModel: TaskViewModel,
@@ -90,6 +98,19 @@ fun addTaskDialog(
         )
     }
     // END FOR propiedades de la tarea
+    var isSubTaskTitleEmpty by remember {
+        mutableStateOf(false)
+    }
+
+    val listSubTask = remember {
+        mutableStateListOf<SubTask>().apply {
+            addAll(task?.subtasks ?: emptyList())
+        }
+    }
+
+    var titleSub by remember {
+        mutableStateOf("")
+    }
 
     // FOR tip
     val toolTipState = rememberTooltipState(
@@ -152,8 +173,8 @@ fun addTaskDialog(
         mutableStateOf(TaskValidationsBoolean())
     }
 
-    fun updateValidationState(title: Boolean, date: Boolean, time: Boolean) {
-        validationsState = TaskValidationsBoolean(title = title, date = date, time = time)
+    fun updateValidationState(title: Boolean, date: Boolean, time: Boolean, subtask: Boolean) {
+        validationsState = TaskValidationsBoolean(title = title, date = date, time = time, subtask = subtask)
     }
     // END FOR validaciones
 
@@ -163,13 +184,13 @@ fun addTaskDialog(
             if(task == null){
                 AssigmentTask()
             } else {
-                AssigmentTask(date = true, hour = true, noreminder = false)
+                AssigmentTask(date = true, hour = true, noreminder = false, subtask = true)
             }
         )
     }
 
-    fun updateAssigments(date: Boolean, hour: Boolean, noreminder: Boolean) {
-        assigment = AssigmentTask(date, hour, noreminder)
+    fun updateAssigments(date: Boolean, hour: Boolean, noreminder: Boolean, subtask: Boolean) {
+        assigment = AssigmentTask(date, hour, noreminder, subtask)
         validationsState = emptyValidationsState
     }
     // END FOR asignaciones
@@ -214,7 +235,8 @@ fun addTaskDialog(
         updateValidationState(
             validationsState.isNoAssigment(titleTask),
             if (assigment.date) validationsState.isDate(localDate) else true,
-            isTimeValid
+            isTimeValid,
+            if(assigment.subtask) !listSubTask.isEmpty() else true
         )
 
         if(validationsState.isValid()){
@@ -222,6 +244,7 @@ fun addTaskDialog(
             val currentTask = Task(
                 id = task?.id ?: 0,
                 title = titleTask,
+                subtasks = listSubTask,
                 isCompleted = false,
                 reminder = assigment.date || assigment.hour,
                 finishDate = localDate.atTime(localTime.hour, localTime.minute),
@@ -328,10 +351,9 @@ fun addTaskDialog(
                 }
 
                 // chips para fecha hora o instantanea
-                Row(
+                FlowRow(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     // FOR Fecha
@@ -340,9 +362,9 @@ fun addTaskDialog(
                         onClick = {
                             selectedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
                             if(assigment.date){
-                                updateAssigments(date = false, hour = assigment.hour, noreminder = !assigment.hour)
+                                updateAssigments(date = false, hour = assigment.hour, noreminder = !assigment.hour, subtask = assigment.subtask)
                             } else {
-                                updateAssigments(date = true, hour = assigment.hour, noreminder = false)
+                                updateAssigments(date = true, hour = assigment.hour, noreminder = false, subtask = assigment.subtask)
                             }
                         },
                         label = {
@@ -362,9 +384,9 @@ fun addTaskDialog(
                                 is24Hour = false
                             )
                             if(assigment.hour){
-                                updateAssigments(date = assigment.date, hour = false, noreminder = !assigment.date)
+                                updateAssigments(date = assigment.date, hour = false, noreminder = !assigment.date, subtask = assigment.subtask)
                             } else {
-                                updateAssigments(date = assigment.date, hour = true, noreminder = false)
+                                updateAssigments(date = assigment.date, hour = true, noreminder = false, subtask = assigment.subtask)
                             }
                         },
                         label = {
@@ -377,15 +399,35 @@ fun addTaskDialog(
                     FilterChip(
                         selected = assigment.noreminder,
                         onClick = {
-                            updateAssigments(date = false, hour = false, noreminder = true)
+                            updateAssigments(date = false, hour = false, noreminder = true, subtask = false)
                         },
                         label = {
                             Text(text = stringResource(id = R.string.fchNoReminder))
                         }
                     )
                     // END FOR Sin aviso
+
+                    // FOR subtareas
+                    FilterChip(
+                        selected = assigment.subtask,
+                        onClick = {
+                            if(assigment.subtask){
+                                listSubTask.clear()
+                                updateAssigments(date = assigment.date, hour = assigment.hour, noreminder = assigment.noreminder, subtask = false)
+                            } else {
+                                updateAssigments(date = assigment.date, hour = assigment.hour, noreminder = assigment.noreminder, subtask = true)
+                            }
+                        },
+                        label = {
+                            Text(
+                                text = stringResource(id = R.string.lblAddSubTask),
+                            )
+                        }
+                    )
+                    // END FOR subtareas
                 }
 
+                // mensaje de aviso previo de notificacion
                 AnimatedVisibility(visible = !assigment.noreminder) {
                     Text(text = stringResource(id = R.string.lblPreTaskWarn), textAlign = TextAlign.Center)
                 }
@@ -399,6 +441,9 @@ fun addTaskDialog(
                 OutlinedTextField(
                     value = titleTask,
                     onValueChange = { titleTask = it },
+                    label = {
+                        Text(text = stringResource(id = R.string.lblTaskName))
+                    },
                     placeholder = {
                         Text(
                             text = stringResource(id = R.string.txtTaskName),
@@ -423,6 +468,7 @@ fun addTaskDialog(
                     }
                 }
 
+                // fecha
                 AnimatedVisibility(visible = assigment.date) {
                     Column {
                         Spacer(modifier = Modifier.size(16.dp))
@@ -431,6 +477,9 @@ fun addTaskDialog(
                             value = selectedDate,
                             onValueChange = {  },
                             readOnly = true,
+                            label = {
+                                Text(text = stringResource(id = R.string.lblDate))
+                            },
                             placeholder = {
                                 Text(
                                     text = stringResource(id = R.string.txtDate),
@@ -461,6 +510,7 @@ fun addTaskDialog(
                     }
                 }
 
+                // hora
                 AnimatedVisibility(visible = assigment.hour) {
                     Column {
                         Spacer(modifier = Modifier.size(16.dp))
@@ -470,17 +520,18 @@ fun addTaskDialog(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            FilledTonalButton(onClick = { openTimePicker = true }) {
-                                Text(
-                                    text = stringResource(id = R.string.btnSelectHour)
-                                )
-                            }
-
                             Text(
                                 text = selectedHour,
                                 style = typography.bodyLarge,
                                 fontWeight = FontWeight.W500
                             )
+
+                            FilledTonalIconButton(onClick = { openTimePicker = true }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.MoreTime,
+                                    contentDescription = stringResource(id = R.string.iconClock)
+                                )
+                            }
                         }
 
                         AnimatedVisibility(visible = !validationsState.time) {
@@ -497,6 +548,126 @@ fun addTaskDialog(
                         }
                     }
                 }
+
+                // subtareas
+                AnimatedVisibility(visible = assigment.subtask) {
+                    Spacer(modifier = Modifier.size(16.dp))
+
+                    HorizontalDivider()
+
+                    Spacer(modifier = Modifier.size(16.dp))
+                    
+                    Column {
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            text = stringResource(id = R.string.lblSubTask),
+                            style = typography.titleMedium
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                OutlinedTextField(
+                                    value = titleSub,
+                                    onValueChange = { titleSub = it },
+                                    label = {
+                                        Text(text = stringResource(id = R.string.lblSubTaskName))
+                                    },
+                                    placeholder = {
+                                        Text(
+                                            text = stringResource(id = R.string.txtSubTaskName),
+                                            modifier = Modifier
+                                                .graphicsLayer(alpha = 0.5f)
+                                        )
+                                    },
+                                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                                    modifier = Modifier.fillMaxWidth(0.8f)
+                                )
+
+                                AnimatedVisibility(visible = isSubTaskTitleEmpty) {
+                                    Text(
+                                        text = stringResource(id = R.string.lblTitleEmpty),
+                                        style = typography.labelSmall,
+                                        color = colorScheme.error
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.size(8.dp))
+
+                            FilledTonalIconButton(
+                                onClick = {
+                                    if(titleSub.isEmpty()){
+                                        isSubTaskTitleEmpty = true
+                                    } else {
+                                        listSubTask.add(
+                                            SubTask(
+                                                title = titleSub
+                                            )
+                                        )
+                                        isSubTaskTitleEmpty = false
+                                        titleSub = ""
+                                    }
+                                },
+                                shape = OutlinedTextFieldDefaults.shape
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Done,
+                                    contentDescription = stringResource(id = R.string.iconAddSubTask)
+                                )
+                            }
+                        }
+
+                        AnimatedVisibility(visible = !validationsState.subtask) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Start
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.lblSubTaskWrong),
+                                    style = typography.labelSmall,
+                                    color = colorScheme.error
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.size(8.dp))
+
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 100.dp)
+                        ) {
+                            items(listSubTask) { sub ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = sub.title,
+                                        maxLines = 2,
+                                        style = typography.labelMedium
+                                    )
+
+                                    IconButton(onClick = { listSubTask.remove(sub) }) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Delete,
+                                            contentDescription = stringResource(id = R.string.iconDeleteSubTask)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.size(16.dp))
+
+                HorizontalDivider()
 
                 Spacer(modifier = Modifier.size(32.dp))
 

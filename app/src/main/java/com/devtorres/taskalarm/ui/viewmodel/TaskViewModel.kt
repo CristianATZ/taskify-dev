@@ -8,6 +8,7 @@ import androidx.activity.result.ActivityResult
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.devtorres.taskalarm.data.model.SubTask
 import com.devtorres.taskalarm.data.model.Task
 import com.devtorres.taskalarm.data.repository.TaskRepository
 import com.devtorres.taskalarm.util.NotificationHelper
@@ -110,6 +111,14 @@ class TaskViewModel(
                     requestCode = "${task.id}${task.id}".toInt()
                 )
             }
+
+            getAllTask()
+        }
+    }
+
+    fun updateSubTask(taskId: Int, subTaskList: List<SubTask>) {
+        viewModelScope.launch {
+            taskRepository.updateSubTask(taskId, subTaskList)
 
             getAllTask()
         }

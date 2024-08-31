@@ -17,6 +17,9 @@ interface TaskDao {
     @Update
     suspend fun updateTask(task: Task)
 
+    @Query("UPDATE tasks SET subtasks = :list WHERE id = :taskId")
+    suspend fun updateSubTask(taskId: Int, list: String)
+
     @Update
     suspend fun completeTask(task: Task)
 

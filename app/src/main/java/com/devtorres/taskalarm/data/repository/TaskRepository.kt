@@ -1,11 +1,14 @@
 package com.devtorres.taskalarm.data.repository
 
+import com.devtorres.taskalarm.data.database.Converters
 import com.devtorres.taskalarm.data.database.TaskDao
+import com.devtorres.taskalarm.data.model.SubTask
 import com.devtorres.taskalarm.data.model.Task
 
 interface TaskRepository {
     suspend fun insertTask(task: Task): Long
     suspend fun updateTask(task: Task)
+    suspend fun updateSubTask(taskId: Int, subTaskList: List<SubTask>)
     suspend fun completeTask(task: Task)
     suspend fun updateTaskById(taskId: Int)
     suspend fun deleteTask(task: Task)
@@ -23,6 +26,14 @@ class TaskRepositoryImpl(
     // funcion para actualizar tarea
     override suspend fun updateTask(task: Task) {
         taskDao.updateTask(task)
+    }
+
+    override suspend fun updateSubTask(taskId: Int, subTaskList: List<SubTask>) {
+        // Convierte la lista de subtareas a una cadena JSON
+        val subtasksJson = Converters().fromSubtaskList(subTaskList)
+
+        // Llama al DAO para actualizar la tarea
+        taskDao.updateSubTask(taskId, subtasksJson)
     }
 
     override suspend fun completeTask(task: Task) {
