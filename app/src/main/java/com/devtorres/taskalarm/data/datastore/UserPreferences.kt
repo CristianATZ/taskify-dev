@@ -7,10 +7,9 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.map
 
 class UserPreferences(context: Context){
-
-    private val Context.dataStore by preferencesDataStore("user_prefs")
-
     private val THEME_KEY = booleanPreferencesKey("dark_theme")
+
+    private val dataStore = context.dataStore
 
     val theme = context.dataStore.data
         .map { preferences -> preferences[THEME_KEY] ?: false }
